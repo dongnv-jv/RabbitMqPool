@@ -1,0 +1,34 @@
+package org.example.commom;
+
+public class CommonConstant {
+
+    private CommonConstant() {
+    }
+
+    public static final String EXCHANGE_FANOUT = "fanout-exchange";
+    public static final String QUEUE_NAME_FANOUT_1 = "fanout-queue-1";
+    public static final String QUEUE_NAME_FANOUT_2 = "fanout-queue-2";
+    public static final String QUEUE_NAME_FANOUT_3 = "fanout-queue-3";
+    
+    
+    
+// direct exchange
+    public static final String ROUTING_KEY = "";
+    public static final String EXCHANGE_DIRECT = "direct-exchange";
+    public static final String QUEUE_NAME_DIRECT_1 = "direct-queue-1";
+    public static final String QUEUE_NAME_DIRECT_2 = "direct-queue-2";
+    public static final String QUEUE_NAME_DIRECT_3 = "direct-queue-3";
+
+    public static final  String ROUTING_KEY_DIRECT_1 = "direct-key-1";
+    public static final String ROUTING_KEY_DIRECT_2 = "direct-key-2";
+    public static final String ROUTING_KEY_DIRECT_3 = "direct-key-3";
+
+// topic exchange
+    public static final String EXCHANGE_TOPIC = "topic-exchange";
+    public static final String QUEUE_NAME_TOPIC_1 = "topic-queue-1";
+    public static final String QUEUE_NAME_TOPIC_2 = "topic-queue-2";
+    public static final String QUEUE_NAME_TOPIC_3 = "topic-queue-3";
+    public static final String ROUTING_PATTERN_1 = "asia.china.*";
+    public static final String ROUTING_PATTERN_2 = "asia.china.#";
+    public static final String ROUTING_PATTERN_3 = "asia.*.*";
+}
