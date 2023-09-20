@@ -15,7 +15,7 @@ public class TestConnectionPool {
             for (int i = 0; i < 15; i++) {
                 new Thread(() -> {
                     try {
-                            RabbitMqConnectionPool rabbitMqConnectionPool = new RabbitMqConnectionPool(rabbitMqConnectionFactory);
+                            RabbitMqConnectionPool rabbitMqConnectionPool =  RabbitMqConnectionPool.getInstance();
 
                             Connection connection = rabbitMqConnectionPool.getConnection();
 

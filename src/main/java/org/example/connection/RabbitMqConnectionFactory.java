@@ -14,9 +14,13 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
 public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection> {
+
+    private static RabbitMqConnectionFactory instance;
+
     Logger logger = LoggerFactory.getLogger(RabbitMqConnectionFactory.class);
 
     public ConnectionFactory connectionFactory() throws URISyntaxException, NoSuchAlgorithmException, KeyManagementException {
@@ -27,10 +31,23 @@ public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection
 
     }
 
+    public static RabbitMqConnectionFactory getInstance() {
+        if (instance == null) {
+            instance = new RabbitMqConnectionFactory();
+        }
+        return instance;
+    }
+
     @Override
     public PooledObject<Connection> makeObject() throws URISyntaxException, NoSuchAlgorithmException, KeyManagementException, IOException, TimeoutException {
-        logger.info(" Object Connection is creating ... ");
-        return new DefaultPooledObject<>(connectionFactory().newConnection());
+
+        Connection connection = connectionFactory().newConnection();
+        String id = connection.getId();
+        if (id == null) {
+            connection.setId(UUID.randomUUID().toString());
+        }
+        logger.info(" Object Connection {} is creating ",connection.getId());
+        return new DefaultPooledObject<>(connection);
     }
 
     @Override
@@ -41,6 +58,7 @@ public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection
                 logger.info(" Object Connection is destroying  ... ");
                 connection.close();
             } catch (Exception e) {
+                logger.error("Destroy Object Connection is  failed with root cause {} ", e.getMessage());
             }
         }
     }
@@ -53,11 +71,13 @@ public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection
 
     @Override
     public void activateObject(PooledObject<Connection> pooledObject) {
-
+        Connection connection = pooledObject.getObject();
+        logger.info(" Object Connection {} is calling !", connection.getId());
     }
 
     @Override
     public void passivateObject(PooledObject<Connection> pooledObject) {
-
+        Connection connection = pooledObject.getObject();
+        logger.info(" Object Connection {} is returnning !", connection.getId());
     }
 }

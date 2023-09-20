@@ -12,6 +12,8 @@ import java.util.NoSuchElementException;
 
 public class ChannelPool implements Cloneable {
 
+
+    private static ChannelPool instance;
     Logger logger = LoggerFactory.getLogger(ChannelPool.class);
 
     // Số lượng channel tối đa được tạo ra
@@ -26,13 +28,20 @@ public class ChannelPool implements Cloneable {
 
     private GenericObjectPool<Channel> internalPool;
     public GenericObjectPoolConfig<Channel> defaultConfig;
-
+    public static ChannelPool getInstance() throws Exception {
+        if (instance == null) {
+            instance = new ChannelPool();
+        }
+        return instance;
+    }
 
     public GenericObjectPool<Channel> getInternalPool() {
         return internalPool;
     }
 
-    public ChannelPool(ChannelFactory channelFactory) throws Exception {
+    public ChannelPool() throws Exception {
+        ChannelFactory factory = ChannelFactory.getInstance();
+
         if (internalPool != null) {
             try {
                 closeInternalPool();
@@ -45,11 +54,11 @@ public class ChannelPool implements Cloneable {
         defaultConfig.setMinIdle(minIdle);
         defaultConfig.setMaxIdle(maxIdle);
         defaultConfig.setBlockWhenExhausted(blockWhenExhausted);
-        internalPool = new GenericObjectPool<>(channelFactory, defaultConfig);
+        internalPool = new GenericObjectPool<>(factory, defaultConfig);
         for (int i = 0; i < defaultConfig.getMinIdle(); i++) {
             internalPool.addObject();
         }
-        logger.info("Create InternalPool with {} Connection in Pool", internalPool.getNumIdle());
+        logger.info("Create InternalPool with {} Channel in Pool", internalPool.getNumIdle());
     }
 
     private void closeInternalPool() {
@@ -65,7 +74,7 @@ public class ChannelPool implements Cloneable {
         try {
             if (channel.isOpen()) {
                 internalPool.returnObject(channel);
-                logger.info("Return Channel successfully !");
+
             } else {
                 internalPool.invalidateObject(channel);
             }
@@ -89,13 +98,4 @@ public class ChannelPool implements Cloneable {
         }
     }
 
-    @Override
-    public ChannelPool clone() {
-        try {
-            ChannelPool clone = (ChannelPool) super.clone();
-            return clone;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
-    }
 }

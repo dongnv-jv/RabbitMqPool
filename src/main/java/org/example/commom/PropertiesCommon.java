@@ -19,7 +19,7 @@ public class PropertiesCommon {
             properties.load(input);
             logger.info(" Get properties from resource success !");
         } catch (Throwable e) {
-            logger.error(" Get properties from resource falsed with root cause : {}", e.getMessage());
+            logger.error(" Get properties from resource failed with root cause : {}", e.getMessage());
         }
 
         return properties.getProperty(key);

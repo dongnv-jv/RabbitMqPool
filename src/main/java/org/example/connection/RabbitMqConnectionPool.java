@@ -12,6 +12,7 @@ import java.util.NoSuchElementException;
 
 public class RabbitMqConnectionPool implements Cloneable {
 
+    private static RabbitMqConnectionPool instance;
     Logger logger = LoggerFactory.getLogger(RabbitMqConnectionPool.class);
     // Số lượng tối đa được tạo ra
     private int maxTotal = Integer.parseInt(PropertiesCommon.getFromProperties("connection.pool.maxTotal"));
@@ -25,8 +26,17 @@ public class RabbitMqConnectionPool implements Cloneable {
     private GenericObjectPool<Connection> internalPool;
     private GenericObjectPoolConfig<Connection> defaultConfig;
 
-    public RabbitMqConnectionPool(RabbitMqConnectionFactory factory
-    ) throws Exception {
+
+    public static RabbitMqConnectionPool getInstance() throws Exception {
+        if (instance == null) {
+            instance = new RabbitMqConnectionPool();
+        }
+        return instance;
+    }
+
+    public RabbitMqConnectionPool() throws Exception {
+        RabbitMqConnectionFactory rabbitMqConnectionFactory = RabbitMqConnectionFactory.getInstance();
+
         this.defaultConfig = new GenericObjectPoolConfig<>();
         this.defaultConfig.setMaxTotal(this.maxTotal);
         this.defaultConfig.setMaxIdle(this.maxIdle);
@@ -37,10 +47,10 @@ public class RabbitMqConnectionPool implements Cloneable {
             try {
                 closeInternalPool();
             } catch (Exception e) {
-
+                logger.error("Create InternalPool fail with root cause {}", e.getMessage());
             }
         }
-        internalPool = new GenericObjectPool<Connection>(factory, defaultConfig);
+        internalPool = new GenericObjectPool<>(rabbitMqConnectionFactory, defaultConfig);
         for (int i = 0; i < defaultConfig.getMinIdle(); i++) {
             internalPool.addObject();
         }
@@ -88,13 +98,4 @@ public class RabbitMqConnectionPool implements Cloneable {
         return internalPool;
     }
 
-    @Override
-    public RabbitMqConnectionPool clone() {
-        try {
-            RabbitMqConnectionPool clone1 = (RabbitMqConnectionPool) super.clone();
-            return clone1;
-        } catch (CloneNotSupportedException e) {
-            throw new AssertionError();
-        }
-    }
 }
