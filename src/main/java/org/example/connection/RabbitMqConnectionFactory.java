@@ -1,6 +1,5 @@
 package org.example.connection;
 
-import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import org.apache.commons.pool2.PooledObject;
@@ -10,25 +9,15 @@ import org.example.commom.PropertiesCommon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Properties;
 import java.util.concurrent.TimeoutException;
 
 public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection> {
     Logger logger = LoggerFactory.getLogger(RabbitMqConnectionFactory.class);
-
-    private final Connection connection;
-
-    public RabbitMqConnectionFactory() throws URISyntaxException, NoSuchAlgorithmException, KeyManagementException, IOException, TimeoutException {
-
-        this.connection = this.connectionFactory().newConnection();
-
-    }
 
     public ConnectionFactory connectionFactory() throws URISyntaxException, NoSuchAlgorithmException, KeyManagementException {
         ConnectionFactory factory = new ConnectionFactory();
@@ -39,9 +28,9 @@ public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection
     }
 
     @Override
-    public PooledObject<Connection> makeObject() {
+    public PooledObject<Connection> makeObject() throws URISyntaxException, NoSuchAlgorithmException, KeyManagementException, IOException, TimeoutException {
         logger.info(" Object Connection is creating ... ");
-        return new DefaultPooledObject<>(connection);
+        return new DefaultPooledObject<>(connectionFactory().newConnection());
     }
 
     @Override

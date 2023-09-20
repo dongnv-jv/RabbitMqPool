@@ -5,12 +5,11 @@ import com.rabbitmq.client.Connection;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
-import org.example.connection.RabbitMqConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ChannelFactory implements PooledObjectFactory<Channel> {
-    private Connection connection;
+    private final Connection connection;
     Logger logger = LoggerFactory.getLogger(ChannelFactory.class);
 
     public ChannelFactory(Connection connection) {

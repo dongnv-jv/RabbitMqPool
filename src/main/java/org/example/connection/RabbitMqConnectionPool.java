@@ -3,6 +3,7 @@ package org.example.connection;
 import com.rabbitmq.client.Connection;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.example.commom.PropertiesCommon;
 import org.example.exception.CommonException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,41 +14,36 @@ public class RabbitMqConnectionPool implements Cloneable {
 
     Logger logger = LoggerFactory.getLogger(RabbitMqConnectionPool.class);
     // Số lượng tối đa được tạo ra
-    private int maxTotal;
+    private int maxTotal = Integer.parseInt(PropertiesCommon.getFromProperties("connection.pool.maxTotal"));
     // Số lượng connection tối thiểu trong pool
-    private int minIdle;
+    private int minIdle = Integer.parseInt(PropertiesCommon.getFromProperties("connection.pool.minIdle"));
     // Số lượng connection tối đa trong pool
-    private int maxIdle;
+    private int maxIdle = Integer.parseInt(PropertiesCommon.getFromProperties("connection.pool.maxIdle"));
     //
-    private boolean blockWhenExhausted;
+    private boolean blockWhenExhausted = Boolean.parseBoolean(PropertiesCommon.getFromProperties("connection.pool.blockWhenExhausted"));
 
     private GenericObjectPool<Connection> internalPool;
-    public static GenericObjectPoolConfig defaultConfig;
+    private  GenericObjectPoolConfig<Connection> defaultConfig;
 
-    public RabbitMqConnectionPool(int maxTotal,
-                                  int minIdle,
-                                  int maxIdle,
-                                  boolean blockWhenExhausted,
-                                  RabbitMqConnectionFactory factory
-    ) {
-        this.maxTotal = maxTotal;
-        this.minIdle = minIdle;
-        this.maxIdle = maxIdle;
-        this.blockWhenExhausted = blockWhenExhausted;
-        this.defaultConfig = new GenericObjectPoolConfig();
+    public RabbitMqConnectionPool(RabbitMqConnectionFactory factory
+    ) throws Exception {
+        this.defaultConfig = new GenericObjectPoolConfig<>();
         this.defaultConfig.setMaxTotal(this.maxTotal);
         this.defaultConfig.setMaxIdle(this.maxIdle);
         this.defaultConfig.setMinIdle(this.minIdle);
-        this.defaultConfig.setBlockWhenExhausted(false);
+        this.defaultConfig.setBlockWhenExhausted(blockWhenExhausted);
 
         if (this.internalPool != null) {
             try {
                 closeInternalPool();
             } catch (Exception e) {
+
             }
         }
-        this.internalPool = new GenericObjectPool<>(factory, defaultConfig);
-
+        internalPool = new GenericObjectPool<Connection>(factory, defaultConfig);
+        for (int i = 0; i < defaultConfig.getMinIdle(); i++) {
+            internalPool.addObject();
+        }
     }
 
     private void closeInternalPool() {
@@ -61,6 +57,7 @@ public class RabbitMqConnectionPool implements Cloneable {
     public void returnConnection(Connection connection) {
         try {
             if (connection.isOpen()) {
+                logger.info(" Quantity connection Active in Connection pool: {}",internalPool.getNumActive());
                 internalPool.returnObject(connection);
             } else {
                 internalPool.invalidateObject(connection);
@@ -72,7 +69,7 @@ public class RabbitMqConnectionPool implements Cloneable {
 
     public Connection getConnection() {
         try {
-            logger.info(" Quantity connection waiter in Connection pool: {}",internalPool.getNumWaiters());
+            logger.info(" Quantity connection is not active in Connection pool: {}",internalPool.getNumIdle());
             logger.info(" Quantity connection Active in Connection pool: {}",internalPool.getNumActive());
             return internalPool.borrowObject();
         } catch (NoSuchElementException nse) {
@@ -89,5 +86,15 @@ public class RabbitMqConnectionPool implements Cloneable {
 
     public GenericObjectPool<Connection> getInternalPool() {
         return internalPool;
+    }
+
+    @Override
+    public RabbitMqConnectionPool clone() {
+        try {
+            RabbitMqConnectionPool clone1 = (RabbitMqConnectionPool) super.clone();
+            return clone1;
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError();
+        }
     }
 }
