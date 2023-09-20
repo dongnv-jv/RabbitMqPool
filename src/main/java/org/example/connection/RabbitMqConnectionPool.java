@@ -23,7 +23,7 @@ public class RabbitMqConnectionPool implements Cloneable {
     private boolean blockWhenExhausted = Boolean.parseBoolean(PropertiesCommon.getFromProperties("connection.pool.blockWhenExhausted"));
 
     private GenericObjectPool<Connection> internalPool;
-    private  GenericObjectPoolConfig<Connection> defaultConfig;
+    private GenericObjectPoolConfig<Connection> defaultConfig;
 
     public RabbitMqConnectionPool(RabbitMqConnectionFactory factory
     ) throws Exception {
@@ -57,7 +57,7 @@ public class RabbitMqConnectionPool implements Cloneable {
     public void returnConnection(Connection connection) {
         try {
             if (connection.isOpen()) {
-                logger.info(" Quantity connection Active in Connection pool: {}",internalPool.getNumActive());
+                logger.info(" Quantity connection Active in Connection pool: {}", internalPool.getNumActive());
                 internalPool.returnObject(connection);
             } else {
                 internalPool.invalidateObject(connection);
@@ -69,8 +69,8 @@ public class RabbitMqConnectionPool implements Cloneable {
 
     public Connection getConnection() {
         try {
-            logger.info(" Quantity connection is not active in Connection pool: {}",internalPool.getNumIdle());
-            logger.info(" Quantity connection Active in Connection pool: {}",internalPool.getNumActive());
+            logger.info(" Quantity connection is not active in Connection pool: {}", internalPool.getNumIdle());
+            logger.info(" Quantity connection Active in Connection pool: {}", internalPool.getNumActive());
             return internalPool.borrowObject();
         } catch (NoSuchElementException nse) {
             if (null == nse.getCause()) {

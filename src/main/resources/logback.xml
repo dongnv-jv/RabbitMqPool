@@ -1,15 +1,24 @@
-<configuration debug="true">
-
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration>
+    <property name="DIR" value="logs/poolDemo"></property>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+        <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%highlight(%thread)] %-5level %logger{36} %highlight(%line) - %highlight(%msg) %n</pattern>
-            <outputPatternAsHeader>true</outputPatternAsHeader>
-            <immediateFlush>true</immediateFlush>
-            <coloring>always</coloring>
+        </encoder>
+    </appender>
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${DIR}/log_pool_demo.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>${DIR}/archive/log_%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>30MB</maxFileSize>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%highlight(%thread)] %-5level %logger{36} %highlight(%line) - %highlight(%msg) %n</pattern>
         </encoder>
     </appender>
 
-    <root level="debug">
-        <appender-ref ref="STDOUT" />
+    <root level="info">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="FILE"/>
     </root>
 </configuration>

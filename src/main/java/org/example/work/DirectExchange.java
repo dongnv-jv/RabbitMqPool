@@ -6,12 +6,15 @@ import com.rabbitmq.client.Connection;
 import org.example.channel.ChannelPool;
 import org.example.commom.CommonConstant;
 import org.example.connection.RabbitMqConnectionPool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DirectExchange {
 
-
+    Logger logger = LoggerFactory.getLogger(DirectExchange.class);
 
     public void createExchangeAndQueue(RabbitMqConnectionPool rabbitMqConnectionPool, ChannelPool channelPool){
+        Long start = System.currentTimeMillis();
         try{
             Connection conn = rabbitMqConnectionPool.getConnection();
             if(conn != null){
@@ -33,6 +36,8 @@ public class DirectExchange {
 
                 rabbitMqConnectionPool.returnConnection(conn);
                 channelPool.returnChannel(channel);
+                Long end = System.currentTimeMillis();
+                logger.info(" Process createExchangeAndQueue in DirectExchange take {} miliSecond ", (end-start));
             }
         }catch(Exception e){
             e.printStackTrace();

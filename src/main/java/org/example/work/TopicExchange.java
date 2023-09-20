@@ -6,12 +6,15 @@ import com.rabbitmq.client.Connection;
 import org.example.channel.ChannelPool;
 import org.example.commom.CommonConstant;
 import org.example.connection.RabbitMqConnectionPool;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TopicExchange {
 
-
+    Logger logger = LoggerFactory.getLogger(TopicExchange.class);
 
     public void createExchangeAndQueue(RabbitMqConnectionPool rabbitMqConnectionPool, ChannelPool channelPool) {
+        Long start = System.currentTimeMillis();
         try {
             Connection conn = rabbitMqConnectionPool.getConnection();
             if (conn != null) {
@@ -31,6 +34,8 @@ public class TopicExchange {
 
                 channelPool.returnChannel(channel);
                 rabbitMqConnectionPool.returnConnection(conn);
+                Long end = System.currentTimeMillis();
+                logger.info(" Process createExchangeAndQueue in TopicExchange take {} miliSecond ", (end - start));
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -24,9 +24,8 @@ public class ChannelPool implements Cloneable {
     private boolean blockWhenExhausted = Boolean.parseBoolean(PropertiesCommon.getFromProperties("channel.pool.blockWhenExhausted"));
 
 
-
     private GenericObjectPool<Channel> internalPool;
-    public GenericObjectPoolConfig<Channel> defaultConfig ;
+    public GenericObjectPoolConfig<Channel> defaultConfig;
 
 
     public GenericObjectPool<Channel> getInternalPool() {
@@ -38,7 +37,7 @@ public class ChannelPool implements Cloneable {
             try {
                 closeInternalPool();
             } catch (Exception e) {
-                logger.error("Create InternalPool fail with root cause {}",e.getMessage());
+                logger.error("Create InternalPool fail with root cause {}", e.getMessage());
             }
         }
         defaultConfig = new GenericObjectPoolConfig<>();
@@ -50,7 +49,7 @@ public class ChannelPool implements Cloneable {
         for (int i = 0; i < defaultConfig.getMinIdle(); i++) {
             internalPool.addObject();
         }
-        logger.info("Create InternalPool with {} Connection in Pool",internalPool.getNumIdle());
+        logger.info("Create InternalPool with {} Connection in Pool", internalPool.getNumIdle());
     }
 
     private void closeInternalPool() {

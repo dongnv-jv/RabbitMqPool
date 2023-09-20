@@ -14,6 +14,7 @@ public class FanoutExchange {
     Logger logger = LoggerFactory.getLogger(FanoutExchange.class);
 
     public void createExchangeAndQueue(RabbitMqConnectionPool rabbitMqConnectionPool, ChannelPool channelPool) {
+        Long start = System.currentTimeMillis();
         try {
             Connection conn = rabbitMqConnectionPool.getConnection();
             logger.info(" Quantity connection waiter in Connection pool: {}",rabbitMqConnectionPool.getInternalPool().getNumWaiters());
@@ -38,6 +39,8 @@ public class FanoutExchange {
 
                 channelPool.returnChannel(channel);
                 rabbitMqConnectionPool.returnConnection(conn);
+                Long end = System.currentTimeMillis();
+                logger.info(" Process createExchangeAndQueue in FanoutExchange take {} miliSecond ", (end-start));
             }
         } catch (Exception e) {
             e.printStackTrace();
