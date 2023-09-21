@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-public class HeaderExchange {
+public class HeaderExchange extends BaseExchange{
     Logger logger = LoggerFactory.getLogger(HeaderExchange.class);
 
     public void createExchangeAndQueue(){

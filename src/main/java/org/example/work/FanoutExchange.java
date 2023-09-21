@@ -9,39 +9,38 @@ import org.example.connection.RabbitMqConnectionPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class FanoutExchange {
+public class FanoutExchange extends BaseExchange {
 
     Logger logger = LoggerFactory.getLogger(FanoutExchange.class);
 
-    public void createExchangeAndQueue(RabbitMqConnectionPool rabbitMqConnectionPool, ChannelPool channelPool) {
+    @Override
+    public void createExchangeAndQueue() {
         Long start = System.currentTimeMillis();
         try {
-            Connection conn = rabbitMqConnectionPool.getConnection();
-            logger.info(" Quantity connection waiter in Connection pool: {}",rabbitMqConnectionPool.getInternalPool().getNumWaiters());
-            logger.info(" Quantity connection Active in Connection pool: {}",rabbitMqConnectionPool.getInternalPool().getNumActive());
-            logger.info(" Quantity connection waiter in Channel pool: {}",channelPool.getInternalPool().getNumWaiters());
-            logger.info(" Quantity connection Active in Channel pool: {}",channelPool.getInternalPool().getNumActive());
+            ChannelPool channelPool = ChannelPool.getInstance();
+            logger.info(" Quantity connection waiter in Channel pool: {}", channelPool.getInternalPool().getNumWaiters());
+            logger.info(" Quantity connection Active in Channel pool: {}", channelPool.getInternalPool().getNumActive());
 
-            if (conn != null) {
-                Channel channel = channelPool.getChannel();
-                channel.exchangeDeclare(CommonConstant.EXCHANGE_FANOUT, BuiltinExchangeType.FANOUT, true);
-                // First Queue
-                channel.queueDeclare(CommonConstant.QUEUE_NAME_FANOUT_1, true, false, false, null);
-                channel.queueBind(CommonConstant.QUEUE_NAME_FANOUT_1, CommonConstant.EXCHANGE_FANOUT, CommonConstant.ROUTING_KEY);
 
-                // Second Queue
-                channel.queueDeclare(CommonConstant.QUEUE_NAME_FANOUT_2, true, false, false, null);
-                channel.queueBind(CommonConstant.QUEUE_NAME_FANOUT_2, CommonConstant.EXCHANGE_FANOUT, CommonConstant.ROUTING_KEY);
+            Channel channel = channelPool.getChannel();
+            channel.exchangeDeclare(CommonConstant.EXCHANGE_FANOUT, BuiltinExchangeType.FANOUT, true);
+            // First Queue
+            channel.queueDeclare(CommonConstant.QUEUE_NAME_FANOUT_1, true, false, false, null);
+            channel.queueBind(CommonConstant.QUEUE_NAME_FANOUT_1, CommonConstant.EXCHANGE_FANOUT, CommonConstant.ROUTING_KEY);
 
-                // Third Queue
-                channel.queueDeclare(CommonConstant.QUEUE_NAME_FANOUT_3, true, false, false, null);
-                channel.queueBind(CommonConstant.QUEUE_NAME_FANOUT_3, CommonConstant.EXCHANGE_FANOUT, CommonConstant.ROUTING_KEY);
+            // Second Queue
+            channel.queueDeclare(CommonConstant.QUEUE_NAME_FANOUT_2, true, false, false, null);
+            channel.queueBind(CommonConstant.QUEUE_NAME_FANOUT_2, CommonConstant.EXCHANGE_FANOUT, CommonConstant.ROUTING_KEY);
 
-                channelPool.returnChannel(channel);
-                rabbitMqConnectionPool.returnConnection(conn);
-                Long end = System.currentTimeMillis();
-                logger.info(" Process createExchangeAndQueue in FanoutExchange take {} miliSecond ", (end-start));
-            }
+            // Third Queue
+            channel.queueDeclare(CommonConstant.QUEUE_NAME_FANOUT_3, true, false, false, null);
+            channel.queueBind(CommonConstant.QUEUE_NAME_FANOUT_3, CommonConstant.EXCHANGE_FANOUT, CommonConstant.ROUTING_KEY);
+
+            channelPool.returnChannel(channel);
+
+            Long end = System.currentTimeMillis();
+            logger.info(" Process createExchangeAndQueue in FanoutExchange take {} miliSecond ", (end - start));
+
         } catch (Exception e) {
             e.printStackTrace();
         }

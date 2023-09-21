@@ -22,7 +22,7 @@ public class ChannelFactory implements PooledObjectFactory<Channel> {
         if (instance == null) {
             instance = new ChannelFactory(connection1);
         }
-//        rabbitMqConnectionPool.returnConnection(connection1);
+        rabbitMqConnectionPool.returnConnection(connection1);
         return instance;
     }
 

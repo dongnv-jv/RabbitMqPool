@@ -26,13 +26,13 @@ public class CommonConstant {
 // topic exchange
 
     public static String ROUTING_KEY_1 = "asia.china.1.e";
-    public static String ROUTING_KEY_2 = "asia.china.2.y";
     public static final String EXCHANGE_TOPIC = "topic-exchange";
     public static final String QUEUE_NAME_TOPIC_1 = "topic-queue-1";
     public static final String QUEUE_NAME_TOPIC_2 = "topic-queue-2";
     public static final String QUEUE_NAME_TOPIC_3 = "topic-queue-3";
     public static final String ROUTING_PATTERN_1 = "asia.china.#";
-    public static final String ROUTING_PATTERN_2 = "asia.china.#";
+    public static final String ROUTING_PATTERN_2 = "asia.*";
+    public static final String ROUTING_KEY_2 = "asia.viet.nam";
     public static final String ROUTING_PATTERN_3 = "asia.*.*";
 
 

@@ -9,37 +9,37 @@ import org.example.connection.RabbitMqConnectionPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DirectExchange {
+public class DirectExchange extends BaseExchange {
 
     Logger logger = LoggerFactory.getLogger(DirectExchange.class);
 
-    public void createExchangeAndQueue(RabbitMqConnectionPool rabbitMqConnectionPool, ChannelPool channelPool){
+    @Override
+    public void createExchangeAndQueue() {
         Long start = System.currentTimeMillis();
-        try{
-            Connection conn = rabbitMqConnectionPool.getConnection();
-            if(conn != null){
-                Channel channel = channelPool.getChannel();
-                channel.exchangeDeclare(CommonConstant.EXCHANGE_DIRECT, BuiltinExchangeType.DIRECT, true);
-                // First Queue
-                channel.queueDeclare(CommonConstant.QUEUE_NAME_DIRECT_1, true, false, false, null);
-                channel.queueBind(CommonConstant.QUEUE_NAME_DIRECT_1, CommonConstant.EXCHANGE_DIRECT, CommonConstant.ROUTING_KEY_DIRECT_1);
+        try {
+            ChannelPool channelPool = ChannelPool.getInstance();
 
-                // Second Queue
+            Channel channel = channelPool.getChannel();
+            channel.exchangeDeclare(CommonConstant.EXCHANGE_DIRECT, BuiltinExchangeType.DIRECT, true);
+            // First Queue
+            channel.queueDeclare(CommonConstant.QUEUE_NAME_DIRECT_1, true, false, false, null);
+            channel.queueBind(CommonConstant.QUEUE_NAME_DIRECT_1, CommonConstant.EXCHANGE_DIRECT, CommonConstant.ROUTING_KEY_DIRECT_1);
 
-                channel.queueDeclare(CommonConstant.QUEUE_NAME_DIRECT_2, true, false, false, null);
-                channel.queueBind(CommonConstant.QUEUE_NAME_DIRECT_2, CommonConstant.EXCHANGE_DIRECT, CommonConstant.ROUTING_KEY_DIRECT_2);
+            // Second Queue
+
+            channel.queueDeclare(CommonConstant.QUEUE_NAME_DIRECT_2, true, false, false, null);
+            channel.queueBind(CommonConstant.QUEUE_NAME_DIRECT_2, CommonConstant.EXCHANGE_DIRECT, CommonConstant.ROUTING_KEY_DIRECT_2);
 
 
-                // Third Queue
-                channel.queueDeclare(CommonConstant.QUEUE_NAME_DIRECT_3, true, false, false, null);
-                channel.queueBind(CommonConstant.QUEUE_NAME_DIRECT_3, CommonConstant.EXCHANGE_DIRECT, CommonConstant.ROUTING_KEY_DIRECT_3);
+            // Third Queue
+            channel.queueDeclare(CommonConstant.QUEUE_NAME_DIRECT_3, true, false, false, null);
+            channel.queueBind(CommonConstant.QUEUE_NAME_DIRECT_3, CommonConstant.EXCHANGE_DIRECT, CommonConstant.ROUTING_KEY_DIRECT_3);
 
-                rabbitMqConnectionPool.returnConnection(conn);
-                channelPool.returnChannel(channel);
-                Long end = System.currentTimeMillis();
-                logger.info(" Process createExchangeAndQueue in DirectExchange take {} miliSecond ", (end-start));
-            }
-        }catch(Exception e){
+            channelPool.returnChannel(channel);
+            Long end = System.currentTimeMillis();
+            logger.info(" Process createExchangeAndQueue in DirectExchange take {} miliSecond ", (end - start));
+
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
