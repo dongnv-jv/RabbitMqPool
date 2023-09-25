@@ -1,9 +1,9 @@
-package vn.vnpay.demo.config.channelpoolconfig;
+package vn.vnpay.demo.config.channel;
 
 import com.rabbitmq.client.Channel;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import vn.vnpay.demo.commom.PropertiesFactory;
+import vn.vnpay.demo.common.PropertiesFactory;
 import vn.vnpay.demo.exception.CommonException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,15 +13,15 @@ import java.util.NoSuchElementException;
 public class ChannelPool implements Cloneable {
 
 
-    private static ChannelPool instance;
     private final Logger logger = LoggerFactory.getLogger(ChannelPool.class);
     private GenericObjectPool<Channel> internalPool;
 
+    private static final class InstanceHolder {
+        private static final ChannelPool instance = new ChannelPool();
+    }
+
     public static ChannelPool getInstance()  {
-        if (instance == null) {
-            instance = new ChannelPool();
-        }
-        return instance;
+        return InstanceHolder.instance;
     }
 
     public GenericObjectPool<Channel> getInternalPool() {
@@ -38,7 +38,7 @@ public class ChannelPool implements Cloneable {
             try {
                 closeInternalPool();
             } catch (Exception e) {
-                logger.error("Create InternalPool fail with root cause {}", e.getMessage());
+                logger.error("Create InternalPool fail with root cause ", e);
             }
         }
         try {
@@ -47,7 +47,7 @@ public class ChannelPool implements Cloneable {
             maxIdle = Integer.parseInt(PropertiesFactory.getFromProperties("channel.pool.maxIdle"));
             blockWhenExhausted = Boolean.parseBoolean(PropertiesFactory.getFromProperties("channel.pool.blockWhenExhausted"));
         } catch (Exception e) {
-            logger.error("Can not read value for ChannelPool from resource with root cause {}", e.getMessage());
+            logger.error("Can not read value for ChannelPool from resource with root cause ", e);
             logger.info("Parameters of ChannelPool are used with default values ");
         }
         GenericObjectPoolConfig<Channel> defaultConfig = new GenericObjectPoolConfig<>();
@@ -61,7 +61,7 @@ public class ChannelPool implements Cloneable {
                 internalPool.addObject();
             }
         }catch (Exception e){
-            logger.error("Can not add Object to ChannelPool with root cause {}", e.getMessage());
+            logger.error("Can not add Object to ChannelPool with root cause ", e);
         }
         logger.info("Create InternalPool with {} Channel in Pool", internalPool.getNumIdle());
     }

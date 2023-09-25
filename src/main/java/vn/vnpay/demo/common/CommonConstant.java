@@ -1,4 +1,4 @@
-package vn.vnpay.demo.commom;
+package vn.vnpay.demo.common;
 
 public class CommonConstant {
 

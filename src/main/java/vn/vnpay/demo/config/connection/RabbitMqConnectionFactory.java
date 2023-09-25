@@ -1,11 +1,11 @@
-package vn.vnpay.demo.config.connectionpoolconfig;
+package vn.vnpay.demo.config.connection;
 
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
-import vn.vnpay.demo.commom.PropertiesFactory;
+import vn.vnpay.demo.common.PropertiesFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,23 +19,23 @@ import java.util.concurrent.TimeoutException;
 
 public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection> {
 
-    private static RabbitMqConnectionFactory instance;
-
     private final Logger logger = LoggerFactory.getLogger(RabbitMqConnectionFactory.class);
 
     public ConnectionFactory connectionFactory() throws URISyntaxException, NoSuchAlgorithmException, KeyManagementException {
         ConnectionFactory factory = new ConnectionFactory();
-        URI uriConnect = new URI(PropertiesFactory.getFromProperties("rabbitMq.uri"));
+        String urlConnectRabbitMq = PropertiesFactory.getFromProperties("rabbitMq.uri");
+        URI uriConnect = new URI(urlConnectRabbitMq);
         factory.setUri(uriConnect);
         return factory;
 
     }
 
+    private static final class InstanceHolder {
+        private static final RabbitMqConnectionFactory instance = new RabbitMqConnectionFactory();
+    }
+
     public static RabbitMqConnectionFactory getInstance() {
-        if (instance == null) {
-            instance = new RabbitMqConnectionFactory();
-        }
-        return instance;
+        return InstanceHolder.instance;
     }
 
     @Override
@@ -58,7 +58,7 @@ public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection
                 logger.info(" Object Connection is destroying  ... ");
                 connection.close();
             } catch (Exception e) {
-                logger.error("Destroy Object Connection is  failed with root cause {} ", e.getMessage());
+                logger.error("Destroy Object Connection is  failed with root cause  ", e);
             }
         }
     }

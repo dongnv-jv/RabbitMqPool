@@ -2,8 +2,8 @@ package vn.vnpay.demo.factory;
 
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
-import vn.vnpay.demo.config.channelpoolconfig.ChannelPool;
-import vn.vnpay.demo.commom.CommonConstant;
+import vn.vnpay.demo.config.channel.ChannelPool;
+import vn.vnpay.demo.common.CommonConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.HashMap;
@@ -30,7 +30,7 @@ public class HeaderExchange extends BaseExchange {
             Long end = System.currentTimeMillis();
             logger.info(" Process createExchangeAndQueue in HeaderExchange take {} milliSecond ", (end - start));
         } catch (Exception e) {
-            logger.error("CreateExchangeAndQueue in HeaderExchange failed with root cause {}", e.getMessage());
+            logger.error("CreateExchangeAndQueue in HeaderExchange failed with root cause ", e);
         }
     }
 

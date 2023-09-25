@@ -1,22 +1,20 @@
 package vn.vnpay.demo.controller;
 
-import vn.vnpay.demo.commom.CommonConstant;
-import vn.vnpay.demo.config.channelpoolconfig.ChannelPool;
+import vn.vnpay.demo.config.channel.ChannelPool;
 import vn.vnpay.demo.factory.HeaderExchange;
-import vn.vnpay.demo.service.SendMessageService;
-import vn.vnpay.demo.service.impl.SendMessageServiceImpl;
-import vn.vnpay.demo.factory.FanoutExchange;
+import vn.vnpay.demo.service.ExchangeMessageService;
+import vn.vnpay.demo.service.impl.ExchangeMessageServiceImpl;
 
 public class TestChannelPool {
 
 
     public static void main(String[] args) {
          ChannelPool.getInstance();
-        SendMessageService sendMessageService = new SendMessageServiceImpl();
+        ExchangeMessageService exchangeMessageService = new ExchangeMessageServiceImpl();
 
         HeaderExchange exchange = new HeaderExchange();
-        sendMessageService.sendMessage("Test send message to fanout Exchange",exchange);
-        sendMessageService.getMessageFromQueue(CommonConstant.QUEUE_NAME_FANOUT_3);
+        exchangeMessageService.sendMessage("Test send message to fanout Exchange",exchange);
+//        sendMessageService.getMessageFromQueue(CommonConstant.QUEUE_NAME_HEADER);
 
     }
 }

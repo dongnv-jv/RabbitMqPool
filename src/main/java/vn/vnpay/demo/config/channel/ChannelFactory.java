@@ -1,17 +1,17 @@
-package vn.vnpay.demo.config.channelpoolconfig;
+package vn.vnpay.demo.config.channel;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
-import vn.vnpay.demo.config.connectionpoolconfig.RabbitMqConnectionPool;
+import vn.vnpay.demo.config.connection.RabbitMqConnectionPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ChannelFactory implements PooledObjectFactory<Channel> {
 
-    private static ChannelFactory instance;
+    private volatile static ChannelFactory instance;
     private final Connection connection;
     private final Logger logger = LoggerFactory.getLogger(ChannelFactory.class);
 
@@ -20,9 +20,14 @@ public class ChannelFactory implements PooledObjectFactory<Channel> {
         RabbitMqConnectionPool rabbitMqConnectionPool = RabbitMqConnectionPool.getInstance();
         Connection connection1 = rabbitMqConnectionPool.getConnection();
         if (instance == null) {
-            instance = new ChannelFactory(connection1);
+            synchronized (ChannelFactory.class) {
+                if (instance == null) {
+                    instance = new ChannelFactory(connection1);
+                    rabbitMqConnectionPool.returnConnection(connection1);
+                }
+            }
         }
-        rabbitMqConnectionPool.returnConnection(connection1);
+
         return instance;
     }
 
@@ -42,7 +47,7 @@ public class ChannelFactory implements PooledObjectFactory<Channel> {
             try {
                 channel.close();
             } catch (Exception e) {
-                logger.error(" Can not closing Channel with root cause {} ", e.getMessage());
+                logger.error(" Can not closing Channel with root cause  ", e);
             }
         }
     }
