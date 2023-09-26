@@ -16,8 +16,8 @@ public class DirectExchange extends BaseExchange {
         Long start = System.currentTimeMillis();
         logger.info("Start createExchangeAndQueue in DirectExchange");
         try {
-            ChannelPool channelPool = ChannelPool.getInstance();
-
+//            ChannelPool channelPool = ChannelPool.getInstance();
+            ChannelPool channelPool = null;
             Channel channel = channelPool.getChannel();
             channel.exchangeDeclare(CommonConstant.EXCHANGE_DIRECT, BuiltinExchangeType.DIRECT, true);
 

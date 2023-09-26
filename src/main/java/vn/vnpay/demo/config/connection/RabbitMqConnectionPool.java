@@ -4,6 +4,7 @@ import com.rabbitmq.client.Connection;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import vn.vnpay.demo.common.PropertiesFactory;
+import vn.vnpay.demo.config.channel.ChannelFactory;
 import vn.vnpay.demo.exception.CommonException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,21 +12,23 @@ import org.slf4j.LoggerFactory;
 import java.util.NoSuchElementException;
 
 public class RabbitMqConnectionPool implements Cloneable {
-
+   private volatile static RabbitMqConnectionPool instance;
     private final Logger logger = LoggerFactory.getLogger(RabbitMqConnectionPool.class);
     private GenericObjectPool<Connection> internalPool;
 
+    public static RabbitMqConnectionPool getInstance(RabbitMqConnectionFactory rabbitMqConnectionFactory) {
 
-    private static final class InstanceHolder {
-        private static final RabbitMqConnectionPool instance = new RabbitMqConnectionPool();
+        if (instance == null) {
+            synchronized (RabbitMqConnectionPool.class) {
+                if (instance == null) {
+                    instance = new RabbitMqConnectionPool(rabbitMqConnectionFactory);
+                }
+            }
+        }
+        return instance;
     }
 
-    public static RabbitMqConnectionPool getInstance() {
-        return InstanceHolder.instance;
-    }
-
-    public RabbitMqConnectionPool()  {
-        RabbitMqConnectionFactory rabbitMqConnectionFactory = RabbitMqConnectionFactory.getInstance();
+    public RabbitMqConnectionPool(RabbitMqConnectionFactory rabbitMqConnectionFactory) {
         int maxTotal = 5;
         int minIdle = 5;
         int maxIdle = 5;

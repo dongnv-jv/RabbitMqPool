@@ -16,8 +16,8 @@ public class FanoutExchange extends BaseExchange {
         Long start = System.currentTimeMillis();
         logger.info("Start createExchangeAndQueue in FanoutExchange");
         try {
-            ChannelPool channelPool = ChannelPool.getInstance();
-
+//            ChannelPool channelPool = ChannelPool.getInstance();
+            ChannelPool channelPool = null;
             Channel channel = channelPool.getChannel();
             channel.exchangeDeclare(CommonConstant.EXCHANGE_FANOUT, BuiltinExchangeType.FANOUT, true);
 

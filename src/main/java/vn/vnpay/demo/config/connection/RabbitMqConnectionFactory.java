@@ -9,6 +9,7 @@ import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.vnpay.demo.common.PropertiesFactory;
+import vn.vnpay.demo.config.channel.ChannelFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -23,6 +24,7 @@ public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection
     private String username ;
     private String password ;
     private String virtualHost ;
+   private static RabbitMqConnectionFactory instance;
     private final Logger logger = LoggerFactory.getLogger(RabbitMqConnectionFactory.class);
 
     public RabbitMqConnectionFactory(String host, int port, String username, String password, String virtualHost) {
@@ -57,13 +59,24 @@ public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection
         return factory;
     }
 
-    private static final class InstanceHolder {
-        private static final RabbitMqConnectionFactory instance = new RabbitMqConnectionFactory();
-    }
+//    private static final class InstanceHolder {
+//        private static final RabbitMqConnectionFactory instance = new RabbitMqConnectionFactory(host, port, username, password, virtualHost);
+//    }
+    public static RabbitMqConnectionFactory getInstance(String host, int port, String username, String password, String virtualHost) {
 
-    public static RabbitMqConnectionFactory getInstance() {
-        return InstanceHolder.instance;
+        if (instance == null) {
+            synchronized (ChannelFactory.class) {
+                if (instance == null) {
+                    instance = new RabbitMqConnectionFactory(host, port, username, password, virtualHost);
+                }
+            }
+        }
+
+        return instance;
     }
+//    public static RabbitMqConnectionFactory getInstance() {
+//        return InstanceHolder.instance;
+//    }
 
     @Override
     public PooledObject<Connection> makeObject() throws URISyntaxException, NoSuchAlgorithmException, KeyManagementException, IOException, TimeoutException {

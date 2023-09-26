@@ -16,7 +16,8 @@ public class HeaderExchange extends BaseExchange {
         Long start = System.currentTimeMillis();
         logger.info("Start createExchangeAndQueue in HeaderExchange");
         try {
-            ChannelPool channelPool = ChannelPool.getInstance();
+//            ChannelPool channelPool = ChannelPool.getInstance();
+            ChannelPool channelPool = null;
             Map<String, Object> arguments = new HashMap<>();
             Channel channel = channelPool.getChannel();
             channel.exchangeDeclare(CommonConstant.EXCHANGE_HEADER, BuiltinExchangeType.HEADERS, true);

@@ -1,36 +1,43 @@
 package vn.vnpay.demo.config.channel;
 
 import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.vnpay.demo.common.PropertiesFactory;
+import vn.vnpay.demo.config.connection.RabbitMqConnectionFactory;
+import vn.vnpay.demo.config.connection.RabbitMqConnectionPool;
 import vn.vnpay.demo.exception.CommonException;
 
 import java.util.NoSuchElementException;
 
 public class ChannelPool implements Cloneable {
 
-
+    private static ChannelPool instance;
     private final Logger logger = LoggerFactory.getLogger(ChannelPool.class);
     private GenericObjectPool<Channel> internalPool;
 
 
-    private static final class InstanceHolder {
-        private static final ChannelPool instance = new ChannelPool();
-    }
+    public static ChannelPool getInstance(ChannelFactory factory) {
 
-    public static ChannelPool getInstance()  {
-        return InstanceHolder.instance;
+        if (instance == null) {
+            synchronized (RabbitMqConnectionPool.class) {
+                if (instance == null) {
+                    instance = new ChannelPool(factory);
+                }
+            }
+        }
+        return instance;
     }
 
     public GenericObjectPool<Channel> getInternalPool() {
         return internalPool;
     }
 
-    public ChannelPool() {
-        ChannelFactory factory = ChannelFactory.getInstance();
+    public ChannelPool(ChannelFactory factory) {
+
         int maxTotal = 5;
         int minIdle = 5;
         int maxIdle = 5;
@@ -61,7 +68,7 @@ public class ChannelPool implements Cloneable {
             for (int i = 0; i < defaultConfig.getMinIdle(); i++) {
                 internalPool.addObject();
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error("Can not add Object to ChannelPool with root cause ", e);
         }
         logger.info("Create InternalPool with {} Channel in Pool", internalPool.getNumIdle());

@@ -11,19 +11,16 @@ import org.slf4j.LoggerFactory;
 
 public class ChannelFactory implements PooledObjectFactory<Channel> {
 
-    private volatile static ChannelFactory instance;
+    private volatile  ChannelFactory instance;
     private final Connection connection;
     private final Logger logger = LoggerFactory.getLogger(ChannelFactory.class);
 
-    public static ChannelFactory getInstance() {
+    public  ChannelFactory getInstance() {
 
-        RabbitMqConnectionPool rabbitMqConnectionPool = RabbitMqConnectionPool.getInstance();
-        Connection connection1 = rabbitMqConnectionPool.getConnection();
         if (instance == null) {
             synchronized (ChannelFactory.class) {
                 if (instance == null) {
-                    instance = new ChannelFactory(connection1);
-                    rabbitMqConnectionPool.returnConnection(connection1);
+                    instance = new ChannelFactory(connection);
                 }
             }
         }

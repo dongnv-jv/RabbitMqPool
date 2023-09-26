@@ -16,7 +16,8 @@ public class TopicExchange extends BaseExchange {
         Long start = System.currentTimeMillis();
         logger.info("Start createExchangeAndQueue in TopicExchange ");
         try {
-            ChannelPool channelPool = ChannelPool.getInstance();
+//            ChannelPool channelPool = ChannelPool.getInstance();
+            ChannelPool channelPool = null;
             Channel channel = channelPool.getChannel();
             channel.exchangeDeclare(CommonConstant.EXCHANGE_TOPIC, BuiltinExchangeType.TOPIC, true);
 

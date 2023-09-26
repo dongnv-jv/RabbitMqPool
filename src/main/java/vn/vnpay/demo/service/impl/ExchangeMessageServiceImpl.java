@@ -45,7 +45,8 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
 
         executor.execute(() -> {
             try {
-                ChannelPool channelPool = ChannelPool.getInstance();
+//                ChannelPool channelPool = ChannelPool.getInstance();
+                ChannelPool channelPool = null;
                 Channel channel = channelPool.getChannel();
                 if (exchange instanceof HeaderExchange) {
                     logger.info("Process sendToExchange in ExchangeMessageServiceImpl with header Exchange");
@@ -94,7 +95,8 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
     }
 
     private void getMessageFromQueue(String queueName, Executor executor) {
-        ChannelPool channelPool = ChannelPool.getInstance();
+//        ChannelPool channelPool = ChannelPool.getInstance();
+        ChannelPool channelPool = null;
         executor.execute(() -> {
             try {
                 Channel channel = channelPool.getChannel();
