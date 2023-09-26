@@ -56,11 +56,9 @@ public class RabbitMqConnectionPool implements Cloneable {
         }
         internalPool = new GenericObjectPool<>(rabbitMqConnectionFactory, defaultConfig);
         try {
-            for (int i = 0; i < defaultConfig.getMinIdle(); i++) {
-                internalPool.addObject();
-            }
-        }catch (Exception e){
-            logger.error("Can not add Object to ConnectionPool with root cause ", e);
+            internalPool.preparePool(); // Tạo ra số lượng đối tượng bằng minIdle và đưa chúng vào pool
+        } catch (Exception e) {
+            logger.error("Create InternalPool fail with root cause ", e);
         }
     }
 

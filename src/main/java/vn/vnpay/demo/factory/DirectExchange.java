@@ -24,11 +24,11 @@ public class DirectExchange extends BaseExchange {
             channel.queueDeclare(CommonConstant.QUEUE_NAME_DIRECT_1, true, false, false, null);
             channel.queueBind(CommonConstant.QUEUE_NAME_DIRECT_1, CommonConstant.EXCHANGE_DIRECT, CommonConstant.ROUTING_KEY_DIRECT_1);
 
-            channel.queueDeclare(CommonConstant.QUEUE_NAME_DIRECT_2, true, false, false, null);
-            channel.queueBind(CommonConstant.QUEUE_NAME_DIRECT_2, CommonConstant.EXCHANGE_DIRECT, CommonConstant.ROUTING_KEY_DIRECT_2);
-
-            channel.queueDeclare(CommonConstant.QUEUE_NAME_DIRECT_3, true, false, false, null);
-            channel.queueBind(CommonConstant.QUEUE_NAME_DIRECT_3, CommonConstant.EXCHANGE_DIRECT, CommonConstant.ROUTING_KEY_DIRECT_3);
+//            channel.queueDeclare(CommonConstant.QUEUE_NAME_DIRECT_2, true, false, false, null);
+//            channel.queueBind(CommonConstant.QUEUE_NAME_DIRECT_2, CommonConstant.EXCHANGE_DIRECT, CommonConstant.ROUTING_KEY_DIRECT_2);
+//
+//            channel.queueDeclare(CommonConstant.QUEUE_NAME_DIRECT_3, true, false, false, null);
+//            channel.queueBind(CommonConstant.QUEUE_NAME_DIRECT_3, CommonConstant.EXCHANGE_DIRECT, CommonConstant.ROUTING_KEY_DIRECT_3);
 
             channelPool.returnChannel(channel);
             Long end = System.currentTimeMillis();

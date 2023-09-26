@@ -20,14 +20,14 @@ public class TopicExchange extends BaseExchange {
             Channel channel = channelPool.getChannel();
             channel.exchangeDeclare(CommonConstant.EXCHANGE_TOPIC, BuiltinExchangeType.TOPIC, true);
 
-            channel.queueDeclare(CommonConstant.QUEUE_NAME_TOPIC_1, true, false, false, null);
-            channel.queueBind(CommonConstant.QUEUE_NAME_TOPIC_1, CommonConstant.EXCHANGE_TOPIC, CommonConstant.ROUTING_PATTERN_1);
+//            channel.queueDeclare(CommonConstant.QUEUE_NAME_TOPIC_1, true, false, false, null);
+//            channel.queueBind(CommonConstant.QUEUE_NAME_TOPIC_1, CommonConstant.EXCHANGE_TOPIC, CommonConstant.ROUTING_PATTERN_1);
 
             channel.queueDeclare(CommonConstant.QUEUE_NAME_TOPIC_2, true, false, false, null);
             channel.queueBind(CommonConstant.QUEUE_NAME_TOPIC_2, CommonConstant.EXCHANGE_TOPIC, CommonConstant.ROUTING_PATTERN_2);
 
-            channel.queueDeclare(CommonConstant.QUEUE_NAME_TOPIC_3, true, false, false, null);
-            channel.queueBind(CommonConstant.QUEUE_NAME_TOPIC_3, CommonConstant.EXCHANGE_TOPIC, CommonConstant.ROUTING_PATTERN_3);
+//            channel.queueDeclare(CommonConstant.QUEUE_NAME_TOPIC_3, true, false, false, null);
+//            channel.queueBind(CommonConstant.QUEUE_NAME_TOPIC_3, CommonConstant.EXCHANGE_TOPIC, CommonConstant.ROUTING_PATTERN_3);
 
             channelPool.returnChannel(channel);
 

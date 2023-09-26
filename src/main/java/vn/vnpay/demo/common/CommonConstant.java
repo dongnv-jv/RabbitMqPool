@@ -31,7 +31,7 @@ public class CommonConstant {
     public static final String QUEUE_NAME_TOPIC_2 = "topic-queue-2";
     public static final String QUEUE_NAME_TOPIC_3 = "topic-queue-3";
     public static final String ROUTING_PATTERN_1 = "asia.china.#";
-    public static final String ROUTING_PATTERN_2 = "asia.*";
+    public static final String ROUTING_PATTERN_2 = "asia.#";
     public static final String ROUTING_KEY_2 = "asia.viet.nam";
     public static final String ROUTING_PATTERN_3 = "asia.*.*";
 

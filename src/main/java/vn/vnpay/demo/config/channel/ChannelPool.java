@@ -3,10 +3,10 @@ package vn.vnpay.demo.config.channel;
 import com.rabbitmq.client.Channel;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import vn.vnpay.demo.common.PropertiesFactory;
-import vn.vnpay.demo.exception.CommonException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import vn.vnpay.demo.common.PropertiesFactory;
+import vn.vnpay.demo.exception.CommonException;
 
 import java.util.NoSuchElementException;
 
@@ -15,6 +15,7 @@ public class ChannelPool implements Cloneable {
 
     private final Logger logger = LoggerFactory.getLogger(ChannelPool.class);
     private GenericObjectPool<Channel> internalPool;
+
 
     private static final class InstanceHolder {
         private static final ChannelPool instance = new ChannelPool();
@@ -79,7 +80,6 @@ public class ChannelPool implements Cloneable {
         try {
             if (channel.isOpen()) {
                 internalPool.returnObject(channel);
-
             } else {
                 internalPool.invalidateObject(channel);
             }
