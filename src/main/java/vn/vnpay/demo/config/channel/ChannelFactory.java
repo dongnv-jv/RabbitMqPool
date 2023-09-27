@@ -5,35 +5,35 @@ import com.rabbitmq.client.Connection;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
-import vn.vnpay.demo.config.connection.RabbitMqConnectionPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import vn.vnpay.demo.config.connection.RabbitMqConnectionPool;
 
 public class ChannelFactory implements PooledObjectFactory<Channel> {
 
-    private volatile  ChannelFactory instance;
+    private static volatile ChannelFactory instance;
     private final Connection connection;
     private final Logger logger = LoggerFactory.getLogger(ChannelFactory.class);
 
-    public  ChannelFactory getInstance() {
-
+    public static ChannelFactory getInstance(RabbitMqConnectionPool connectionPool) {
+        Connection connectionRaw = connectionPool.getConnection();
         if (instance == null) {
             synchronized (ChannelFactory.class) {
                 if (instance == null) {
-                    instance = new ChannelFactory(connection);
+                    instance = new ChannelFactory(connectionRaw);
+                    connectionPool.returnConnection(connectionRaw);
                 }
             }
         }
-
         return instance;
     }
 
     public ChannelFactory(Connection connection) {
-            this.connection = connection;
+        this.connection = connection;
     }
 
     public PooledObject<Channel> makeObject() throws Exception {
-        Channel channel= connection.createChannel();
+        Channel channel = connection.createChannel();
         logger.info(" Object Channel {} is creating ", channel.getChannelNumber());
         return new DefaultPooledObject<>(channel);
     }
@@ -48,6 +48,7 @@ public class ChannelFactory implements PooledObjectFactory<Channel> {
             }
         }
     }
+
     public boolean validateObject(PooledObject<Channel> pooledObject) {
         final Channel channel = pooledObject.getObject();
         return channel.isOpen();

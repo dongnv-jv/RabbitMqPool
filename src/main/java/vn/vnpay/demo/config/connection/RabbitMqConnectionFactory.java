@@ -19,12 +19,12 @@ import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
 public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection> {
-    private  String host ;
-    private int port ;
-    private String username ;
-    private String password ;
-    private String virtualHost ;
-   private static RabbitMqConnectionFactory instance;
+    private String host;
+    private int port;
+    private String username;
+    private String password;
+    private String virtualHost;
+    private volatile static RabbitMqConnectionFactory instance;
     private final Logger logger = LoggerFactory.getLogger(RabbitMqConnectionFactory.class);
 
     public RabbitMqConnectionFactory(String host, int port, String username, String password, String virtualHost) {
@@ -41,16 +41,6 @@ public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection
 
     public ConnectionFactory connectionFactory() {
         ConnectionFactory factory = new ConnectionFactory();
-        try {
-            host = PropertiesFactory.getFromProperties("rabbitMq.host");
-            port = Integer.parseInt(PropertiesFactory.getFromProperties("rabbitMq.port"));
-            username = PropertiesFactory.getFromProperties("rabbitMq.username");
-            password = PropertiesFactory.getFromProperties("rabbitMq.password");
-            virtualHost = PropertiesFactory.getFromProperties("rabbitMq.virtualHost");
-        } catch (Exception e) {
-            logger.error("Can not read value for connectionFactory from resource with root cause ", e);
-            logger.info("Parameters of connectionFactory are used with default values ");
-        }
         factory.setUsername(username);
         factory.setPassword(password);
         factory.setVirtualHost(virtualHost);
@@ -59,24 +49,17 @@ public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection
         return factory;
     }
 
-//    private static final class InstanceHolder {
-//        private static final RabbitMqConnectionFactory instance = new RabbitMqConnectionFactory(host, port, username, password, virtualHost);
-//    }
     public static RabbitMqConnectionFactory getInstance(String host, int port, String username, String password, String virtualHost) {
 
         if (instance == null) {
-            synchronized (ChannelFactory.class) {
+            synchronized (RabbitMqConnectionFactory.class) {
                 if (instance == null) {
                     instance = new RabbitMqConnectionFactory(host, port, username, password, virtualHost);
                 }
             }
         }
-
         return instance;
     }
-//    public static RabbitMqConnectionFactory getInstance() {
-//        return InstanceHolder.instance;
-//    }
 
     @Override
     public PooledObject<Connection> makeObject() throws URISyntaxException, NoSuchAlgorithmException, KeyManagementException, IOException, TimeoutException {

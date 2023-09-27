@@ -1,7 +1,5 @@
 package vn.vnpay.demo.factory;
 
-public class BaseExchange {
-    public void createExchangeAndQueue(){
-
-    }
+public interface BaseExchange {
+    public void createExchangeAndQueue();
 }

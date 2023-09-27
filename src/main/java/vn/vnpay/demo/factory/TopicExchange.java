@@ -2,41 +2,42 @@ package vn.vnpay.demo.factory;
 
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
-import vn.vnpay.demo.config.channel.ChannelPool;
-import vn.vnpay.demo.common.CommonConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import vn.vnpay.demo.annotation.CustomValue;
+import vn.vnpay.demo.config.channel.ChannelPool;
 
-public class TopicExchange extends BaseExchange {
+public class TopicExchange implements BaseExchange {
 
     Logger logger = LoggerFactory.getLogger(TopicExchange.class);
+
+    @CustomValue("exchange.topic.name")
+    private String exchangeTopic;
+    @CustomValue("exchange.topic.routing.pattern-1")
+    private String routingPattern;
+    @CustomValue("exchange.topic.queueName")
+    private String queueName;
 
     @Override
     public void createExchangeAndQueue() {
         Long start = System.currentTimeMillis();
         logger.info("Start createExchangeAndQueue in TopicExchange ");
+        ChannelPool channelPool = ChannelPool.getInstance();
+        Channel channel = null;
         try {
-//            ChannelPool channelPool = ChannelPool.getInstance();
-            ChannelPool channelPool = null;
-            Channel channel = channelPool.getChannel();
-            channel.exchangeDeclare(CommonConstant.EXCHANGE_TOPIC, BuiltinExchangeType.TOPIC, true);
-
-//            channel.queueDeclare(CommonConstant.QUEUE_NAME_TOPIC_1, true, false, false, null);
-//            channel.queueBind(CommonConstant.QUEUE_NAME_TOPIC_1, CommonConstant.EXCHANGE_TOPIC, CommonConstant.ROUTING_PATTERN_1);
-
-            channel.queueDeclare(CommonConstant.QUEUE_NAME_TOPIC_2, true, false, false, null);
-            channel.queueBind(CommonConstant.QUEUE_NAME_TOPIC_2, CommonConstant.EXCHANGE_TOPIC, CommonConstant.ROUTING_PATTERN_2);
-
-//            channel.queueDeclare(CommonConstant.QUEUE_NAME_TOPIC_3, true, false, false, null);
-//            channel.queueBind(CommonConstant.QUEUE_NAME_TOPIC_3, CommonConstant.EXCHANGE_TOPIC, CommonConstant.ROUTING_PATTERN_3);
-
-            channelPool.returnChannel(channel);
-
+            channel = channelPool.getChannel();
+            channel.exchangeDeclare(exchangeTopic, BuiltinExchangeType.TOPIC, true);
+            channel.queueDeclare(queueName, true, false, false, null);
+            channel.queueBind(queueName, exchangeTopic, routingPattern);
             Long end = System.currentTimeMillis();
             logger.info(" Process createExchangeAndQueue in TopicExchange take {} millisecond ", (end - start));
 
         } catch (Exception e) {
-            logger.error("CreateExchangeAndQueue in TopicExchange failed with root cause ",e);
+            logger.error("CreateExchangeAndQueue in TopicExchange failed with root cause ", e);
+        } finally {
+            if (channel != null) {
+                channelPool.returnChannel(channel);
+            }
         }
     }
 }

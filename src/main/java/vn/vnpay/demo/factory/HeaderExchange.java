@@ -2,36 +2,45 @@ package vn.vnpay.demo.factory;
 
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
-import vn.vnpay.demo.config.channel.ChannelPool;
-import vn.vnpay.demo.common.CommonConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.HashMap;
+import vn.vnpay.demo.annotation.CustomValue;
+import vn.vnpay.demo.annotation.ValueKeyMap;
+import vn.vnpay.demo.common.CommonConstant;
+import vn.vnpay.demo.config.channel.ChannelPool;
+
 import java.util.Map;
 
-public class HeaderExchange extends BaseExchange {
+public class HeaderExchange implements BaseExchange {
     Logger logger = LoggerFactory.getLogger(HeaderExchange.class);
+    @ValueKeyMap("exchange.header.arguments.")
+    Map<String, Object> arguments;
+    @CustomValue("exchange.header.name")
+    private String exchangeHeader;
+
+    @CustomValue("exchange.header.queueName")
+    private String queueName;
 
     public void createExchangeAndQueue() {
         Long start = System.currentTimeMillis();
         logger.info("Start createExchangeAndQueue in HeaderExchange");
+        ChannelPool channelPool = ChannelPool.getInstance();
+        Channel channel = null;
         try {
-//            ChannelPool channelPool = ChannelPool.getInstance();
-            ChannelPool channelPool = null;
-            Map<String, Object> arguments = new HashMap<>();
-            Channel channel = channelPool.getChannel();
-            channel.exchangeDeclare(CommonConstant.EXCHANGE_HEADER, BuiltinExchangeType.HEADERS, true);
+            channel = channelPool.getChannel();
+            channel.exchangeDeclare(exchangeHeader, BuiltinExchangeType.HEADERS, true);
             arguments.put(CommonConstant.X_MATCH, CommonConstant.X_MATCH_ANY);
-            arguments.put("First", "A");
-            arguments.put("Second", "B");
             arguments.forEach((key, value) -> logger.info("CreateExchangeAndQueue in HeaderExchange with arguments {} : {}", key, value));
-            channel.queueDeclare(CommonConstant.QUEUE_NAME_HEADER, true, false, false, null);
-            channel.queueBind(CommonConstant.QUEUE_NAME_HEADER, CommonConstant.EXCHANGE_HEADER, CommonConstant.ROUTING_KEY, arguments);
-            channelPool.returnChannel(channel);
+            channel.queueDeclare(queueName, true, false, false, null);
+            channel.queueBind(queueName, exchangeHeader, "", arguments);
             Long end = System.currentTimeMillis();
             logger.info(" Process createExchangeAndQueue in HeaderExchange take {} milliSecond ", (end - start));
         } catch (Exception e) {
             logger.error("CreateExchangeAndQueue in HeaderExchange failed with root cause ", e);
+        } finally {
+            if (channel != null) {
+                channelPool.returnChannel(channel);
+            }
         }
     }
 
