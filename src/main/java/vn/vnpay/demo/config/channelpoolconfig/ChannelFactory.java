@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 public class ChannelFactory implements PooledObjectFactory<Channel> {
 
-    private static ChannelFactory instance;
+    private volatile static ChannelFactory instance;
     private final Connection connection;
     private final Logger logger = LoggerFactory.getLogger(ChannelFactory.class);
 
@@ -20,18 +20,22 @@ public class ChannelFactory implements PooledObjectFactory<Channel> {
         RabbitMqConnectionPool rabbitMqConnectionPool = RabbitMqConnectionPool.getInstance();
         Connection connection1 = rabbitMqConnectionPool.getConnection();
         if (instance == null) {
-            instance = new ChannelFactory(connection1);
+            synchronized (ChannelFactory.class) {
+                if (instance == null) {
+                    instance = new ChannelFactory(connection1);
+                }
+            }
         }
         rabbitMqConnectionPool.returnConnection(connection1);
         return instance;
     }
 
     public ChannelFactory(Connection connection) {
-            this.connection = connection;
+        this.connection = connection;
     }
 
     public PooledObject<Channel> makeObject() throws Exception {
-        Channel channel= connection.createChannel();
+        Channel channel = connection.createChannel();
         logger.info(" Object Channel {} is creating ", channel.getChannelNumber());
         return new DefaultPooledObject<>(channel);
     }
@@ -42,10 +46,11 @@ public class ChannelFactory implements PooledObjectFactory<Channel> {
             try {
                 channel.close();
             } catch (Exception e) {
-                logger.error(" Can not closing Channel with root cause {} ", e.getMessage());
+                logger.error(" Can not closing Channel with root cause  ", e);
             }
         }
     }
+
     public boolean validateObject(PooledObject<Channel> pooledObject) {
         final Channel channel = pooledObject.getObject();
         return channel.isOpen();

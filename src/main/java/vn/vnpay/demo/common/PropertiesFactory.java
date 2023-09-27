@@ -1,4 +1,4 @@
-package vn.vnpay.demo.commom;
+package vn.vnpay.demo.common;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +18,7 @@ public class PropertiesFactory {
         try (FileInputStream input = new FileInputStream("src/main/resources/config.properties")) {
             properties.load(input);
         } catch (Throwable e) {
-            logger.error(" Get properties from resource failed with root cause : {}", e.getMessage());
+            logger.error(" Get properties from resource failed with root cause ", e);
         }
 
         return properties.getProperty(key);

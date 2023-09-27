@@ -3,7 +3,7 @@
     <property name="DIR" value="logs/poolDemo"></property>
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%highlight(%thread)] %-5level %logger{36} %highlight(%line) - %highlight(%msg) %n</pattern>
+            <pattern>%d{HH:mm:ss.SSS} [%highlight(%thread)] %-5level %logger{36} - [%highlight(%line)] - %highlight(%msg) %n</pattern>
         </encoder>
     </appender>
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">

@@ -8,8 +8,8 @@ import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vn.vnpay.demo.commom.CommonConstant;
-import vn.vnpay.demo.commom.PropertiesFactory;
+import vn.vnpay.demo.common.CommonConstant;
+import vn.vnpay.demo.common.PropertiesFactory;
 import vn.vnpay.demo.config.channelpoolconfig.ChannelPool;
 import vn.vnpay.demo.service.SendMessageService;
 import vn.vnpay.demo.factory.FanoutExchange;
@@ -31,14 +31,14 @@ public class SendMessageServiceImpl implements SendMessageService {
         logger.info("Start sendToExchange in SendMessageServiceImpl ");
 
         exchange.createExchangeAndQueue();
-        for (int i = 0; i < 100; i++) {
-            this.sendToExchange( message, exchange);
+        for (int i = 0; i < 15; i++) {
+            this.sendToExchange(message, exchange);
         }
         long end = System.currentTimeMillis();
         logger.info("Process sendToExchange in TestPoolService take {} millisecond", (end - start));
     }
 
-    private void sendToExchange( String message, BaseExchange exchange) {
+    private void sendToExchange(String message, BaseExchange exchange) {
         new Thread(() -> {
             try {
                 ChannelPool channelPool = ChannelPool.getInstance();
@@ -73,7 +73,7 @@ public class SendMessageServiceImpl implements SendMessageService {
                 }
                 channelPool.returnChannel(channel);
             } catch (Exception e) {
-                logger.error(" Send message to exchange failed with root cause {}", e.getMessage());
+                logger.error(" Send message to exchange failed with root cause ", e);
             }
         }).start();
     }
@@ -81,6 +81,7 @@ public class SendMessageServiceImpl implements SendMessageService {
     public void getMessageFromQueue(String queueName) {
         long start = System.currentTimeMillis();
         logger.info("Start getMessage in TestPoolService .");
+
         try {
             ChannelPool channelPool = ChannelPool.getInstance();
             Channel channel = channelPool.getChannel();
@@ -90,11 +91,23 @@ public class SendMessageServiceImpl implements SendMessageService {
                     String message = new String(body, charSet);
                     try {
 
-                        channel.basicAck(envelope.getDeliveryTag(), false);
-                        logger.info(" Message Received Queue topic 1: {}", message);
+                        if (envelope.isRedeliver()) {
+                            if (properties.getHeaders().containsKey("x-redelivered-count")) {
+                                int redeliveredCount = (int) properties.getHeaders().get("x-redelivered-count");
+                                logger.error("Số lần requeue: " + redeliveredCount);
+                            } else {
+
+                                logger.error("Tin nhắn chưa được requeue.");
+                            }
+
+                            logger.info("This is message requeue");
+                        }
+                        throw new RuntimeException();
+//                        channel.basicAck(envelope.getDeliveryTag(), false);
+//                        logger.info(" Message Received Queue topic 1: {}", message);
                     } catch (Exception e) {
 
-                        logger.error(" Receiver message {} from queue {} failed with root cause {}", message, queueName, e.getMessage());
+                        logger.error(" Receiver message {} from queue {} failed with root cause ", message, queueName, e);
 
                         channel.basicReject(envelope.getDeliveryTag(), true);
                     }
@@ -107,7 +120,7 @@ public class SendMessageServiceImpl implements SendMessageService {
             long end = System.currentTimeMillis();
             logger.info("Process getMessage in TestPoolService take {} millisecond", (end - start));
         } catch (Exception e) {
-            logger.error(" Receiver message from queue {} failed with root cause {}", queueName, e.getMessage());
+            logger.error(" Receiver message from queue {} failed with root cause ", queueName, e);
         }
     }
 

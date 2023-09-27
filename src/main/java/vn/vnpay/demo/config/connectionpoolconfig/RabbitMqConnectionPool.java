@@ -3,7 +3,7 @@ package vn.vnpay.demo.config.connectionpoolconfig;
 import com.rabbitmq.client.Connection;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import vn.vnpay.demo.commom.PropertiesFactory;
+import vn.vnpay.demo.common.PropertiesFactory;
 import vn.vnpay.demo.exception.CommonException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,19 +12,24 @@ import java.util.NoSuchElementException;
 
 public class RabbitMqConnectionPool implements Cloneable {
 
-    private static RabbitMqConnectionPool instance;
+    private volatile static RabbitMqConnectionPool instance;
     private final Logger logger = LoggerFactory.getLogger(RabbitMqConnectionPool.class);
     private GenericObjectPool<Connection> internalPool;
 
 
     public static RabbitMqConnectionPool getInstance() {
         if (instance == null) {
-            instance = new RabbitMqConnectionPool();
+            synchronized (RabbitMqConnectionPool.class) {
+                if (instance == null) {
+                    instance = new RabbitMqConnectionPool();
+                }
+            }
+
         }
         return instance;
     }
 
-    public RabbitMqConnectionPool()  {
+    public RabbitMqConnectionPool() {
         RabbitMqConnectionFactory rabbitMqConnectionFactory = RabbitMqConnectionFactory.getInstance();
         int maxTotal = 5;
         int minIdle = 5;
@@ -37,7 +42,7 @@ public class RabbitMqConnectionPool implements Cloneable {
             maxIdle = Integer.parseInt(PropertiesFactory.getFromProperties("connection.pool.maxIdle"));
             blockWhenExhausted = Boolean.parseBoolean(PropertiesFactory.getFromProperties("connection.pool.blockWhenExhausted"));
         } catch (Exception e) {
-            logger.error("Can not read value for ConnectionPool from resource with root cause {}", e.getMessage());
+            logger.error("Can not read value for ConnectionPool from resource with root cause ", e);
             logger.info("Parameters of ConnectionPool are used with default values ");
         }
 
@@ -51,7 +56,7 @@ public class RabbitMqConnectionPool implements Cloneable {
             try {
                 closeInternalPool();
             } catch (Exception e) {
-                logger.error("Create InternalPool fail with root cause {}", e.getMessage());
+                logger.error("Create InternalPool fail with root cause ", e);
             }
         }
         internalPool = new GenericObjectPool<>(rabbitMqConnectionFactory, defaultConfig);
@@ -59,8 +64,10 @@ public class RabbitMqConnectionPool implements Cloneable {
             for (int i = 0; i < defaultConfig.getMinIdle(); i++) {
                 internalPool.addObject();
             }
-        }catch (Exception e){
-            logger.error("Can not add Object to ConnectionPool with root cause {}", e.getMessage());
+        } catch (Exception e) {
+            logger.error("Can not add Object to ConnectionPool with root cause ", e);
+        } catch (Error thr) {
+            logger.error("Can not add Object to ConnectionPool with root cause ", thr);
         }
     }
 
@@ -93,17 +100,13 @@ public class RabbitMqConnectionPool implements Cloneable {
         } catch (NoSuchElementException nse) {
             if (null == nse.getCause()) {
                 logger.error("The exception was caused by an exhausted pool");
-                throw new CommonException("Could not get a resource since the pool is exhausted", nse);
+                throw new CommonException("Could not get a Connection since the pool is exhausted", nse);
             }
             logger.error("the exception was caused by the implemented activateObject() or ValidateObject()");
-            throw new CommonException("Could not get a resource from the pool", nse);
+            throw new CommonException("Could not get a Connection from the pool", nse);
         } catch (Exception e) {
-            throw new CommonException("Could not get a resource from the pool", e);
+            throw new CommonException("Could not get a Connection from the pool", e);
         }
-    }
-
-    public GenericObjectPool<Connection> getInternalPool() {
-        return internalPool;
     }
 
 

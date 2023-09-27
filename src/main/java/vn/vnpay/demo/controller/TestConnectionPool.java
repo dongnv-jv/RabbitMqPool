@@ -26,7 +26,7 @@ public class TestConnectionPool {
                 }).start();
             }
         } catch (Exception e) {
-            logger.error(" Create connection failed with root cause {}", e.getMessage());
+            logger.error(" Create connection failed with root cause ", e);
         }
 
 

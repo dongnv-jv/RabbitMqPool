@@ -5,7 +5,7 @@ import com.rabbitmq.client.ConnectionFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
-import vn.vnpay.demo.commom.PropertiesFactory;
+import vn.vnpay.demo.common.PropertiesFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +19,7 @@ import java.util.concurrent.TimeoutException;
 
 public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection> {
 
-    private static RabbitMqConnectionFactory instance;
+    private volatile static RabbitMqConnectionFactory instance;
 
     private final Logger logger = LoggerFactory.getLogger(RabbitMqConnectionFactory.class);
 
@@ -33,7 +33,12 @@ public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection
 
     public static RabbitMqConnectionFactory getInstance() {
         if (instance == null) {
-            instance = new RabbitMqConnectionFactory();
+            synchronized (RabbitMqConnectionFactory.class) {
+                if (instance == null) {
+                    instance = new RabbitMqConnectionFactory();
+                }
+            }
+
         }
         return instance;
     }
@@ -46,7 +51,7 @@ public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection
         if (id == null) {
             connection.setId(UUID.randomUUID().toString());
         }
-        logger.info(" Object Connection {} is creating ",connection.getId());
+        logger.info(" Object Connection {} is creating ", connection.getId());
         return new DefaultPooledObject<>(connection);
     }
 
@@ -58,7 +63,7 @@ public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection
                 logger.info(" Object Connection is destroying  ... ");
                 connection.close();
             } catch (Exception e) {
-                logger.error("Destroy Object Connection is  failed with root cause {} ", e.getMessage());
+                logger.error("Destroy Object Connection is  failed with root cause ", e);
             }
         }
     }

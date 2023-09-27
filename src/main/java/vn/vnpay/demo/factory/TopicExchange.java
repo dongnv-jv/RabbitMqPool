@@ -3,7 +3,7 @@ package vn.vnpay.demo.factory;
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 import vn.vnpay.demo.config.channelpoolconfig.ChannelPool;
-import vn.vnpay.demo.commom.CommonConstant;
+import vn.vnpay.demo.common.CommonConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,7 @@ public class TopicExchange extends BaseExchange {
             logger.info(" Process createExchangeAndQueue in TopicExchange take {} millisecond ", (end - start));
 
         } catch (Exception e) {
-            logger.error("CreateExchangeAndQueue in TopicExchange failed with root cause {}",e.getMessage());
+            logger.error("CreateExchangeAndQueue in TopicExchange failed with root cause ",e);
         }
     }
 }
