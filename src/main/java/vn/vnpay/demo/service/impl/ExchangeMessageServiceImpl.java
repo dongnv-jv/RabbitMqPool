@@ -5,6 +5,11 @@ import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.vnpay.demo.annotation.CustomValue;
@@ -13,7 +18,6 @@ import vn.vnpay.demo.common.ObjectConverter;
 import vn.vnpay.demo.common.PropertiesFactory;
 import vn.vnpay.demo.config.channel.ChannelPool;
 import vn.vnpay.demo.config.threadpool.ThreadPoolConfig;
-
 import vn.vnpay.demo.domain.Student;
 import vn.vnpay.demo.factory.BaseExchange;
 import vn.vnpay.demo.factory.DirectExchange;
@@ -21,15 +25,6 @@ import vn.vnpay.demo.factory.FanoutExchange;
 import vn.vnpay.demo.factory.HeaderExchange;
 import vn.vnpay.demo.factory.TopicExchange;
 import vn.vnpay.demo.service.ExchangeMessageService;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ExchangeMessageServiceImpl implements ExchangeMessageService {
     private final Logger logger = LoggerFactory.getLogger(ExchangeMessageServiceImpl.class);
@@ -104,20 +99,16 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
         logger.info("Start getMessageFromQueue in ExchangeMessageServiceImpl ");
         Executor executor = ThreadPoolConfig.getExecutor();
         ChannelPool channelPool = ChannelPool.getInstance();
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
         for (int i = 0; i < 10; i++) {
-            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> executor.execute(() -> {
+            executor.execute(() -> {
                 try {
                     getMessageFromQueue(queueName, clazz, channelPool);
                 } catch (Exception e) {
                     logger.error(" Receiver message from queue {} failed with root cause ", queueName, e);
                 }
-            }));
-            futures.add(future);
+            });
         }
-        CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-        allOf.join();
-
         long end = System.currentTimeMillis();
         logger.info("Process getMessageFromQueue in ExchangeMessageServiceImpl take {} millisecond", (end - start));
 
@@ -129,7 +120,6 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
             int prefetchCount = 1;
             channel.basicQos(prefetchCount);
             this.getMessageFromQueue(channel, queueName, clazz);
-            Thread.sleep(300);
             channelPool.returnChannel(channel);
         } catch (Exception e) {
             logger.error(" Receiver message from queue {} failed with root cause ", queueName, e);
