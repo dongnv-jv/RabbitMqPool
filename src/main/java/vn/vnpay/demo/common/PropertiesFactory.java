@@ -18,7 +18,7 @@ public class PropertiesFactory {
         try (FileInputStream input = new FileInputStream("src/main/resources/config.properties")) {
             properties.load(input);
         } catch (Throwable e) {
-            logger.error(" Get properties from resource failed with root cause ", e);
+            logger.error(" Get properties from resource failed with root cause : ", e);
         }
 
         return properties.getProperty(key);

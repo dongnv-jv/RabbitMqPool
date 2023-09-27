@@ -30,4 +30,6 @@ build/
 !**/src/test/**/build/
 /target/
 ### VS Code ###
-.vscode/
+.vscode/!/.idea/
+!/.gitignore
+.gitignore

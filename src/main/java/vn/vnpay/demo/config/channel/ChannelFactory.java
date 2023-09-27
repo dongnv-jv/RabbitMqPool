@@ -1,11 +1,11 @@
-package vn.vnpay.demo.config.channelpoolconfig;
+package vn.vnpay.demo.config.channel;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
-import vn.vnpay.demo.config.connectionpoolconfig.RabbitMqConnectionPool;
+import vn.vnpay.demo.config.connection.RabbitMqConnectionPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,19 +23,20 @@ public class ChannelFactory implements PooledObjectFactory<Channel> {
             synchronized (ChannelFactory.class) {
                 if (instance == null) {
                     instance = new ChannelFactory(connection1);
+                    rabbitMqConnectionPool.returnConnection(connection1);
                 }
             }
         }
-        rabbitMqConnectionPool.returnConnection(connection1);
+
         return instance;
     }
 
     public ChannelFactory(Connection connection) {
-        this.connection = connection;
+            this.connection = connection;
     }
 
     public PooledObject<Channel> makeObject() throws Exception {
-        Channel channel = connection.createChannel();
+        Channel channel= connection.createChannel();
         logger.info(" Object Channel {} is creating ", channel.getChannelNumber());
         return new DefaultPooledObject<>(channel);
     }
@@ -50,7 +51,6 @@ public class ChannelFactory implements PooledObjectFactory<Channel> {
             }
         }
     }
-
     public boolean validateObject(PooledObject<Channel> pooledObject) {
         final Channel channel = pooledObject.getObject();
         return channel.isOpen();

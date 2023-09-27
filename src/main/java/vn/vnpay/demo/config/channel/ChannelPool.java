@@ -1,7 +1,6 @@
-package vn.vnpay.demo.config.channelpoolconfig;
+package vn.vnpay.demo.config.channel;
 
 import com.rabbitmq.client.Channel;
-import java.util.NoSuchElementException;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
@@ -9,23 +8,21 @@ import org.slf4j.LoggerFactory;
 import vn.vnpay.demo.common.PropertiesFactory;
 import vn.vnpay.demo.exception.CommonException;
 
+import java.util.NoSuchElementException;
+
 public class ChannelPool implements Cloneable {
 
 
-    private volatile static ChannelPool instance;
     private final Logger logger = LoggerFactory.getLogger(ChannelPool.class);
     private GenericObjectPool<Channel> internalPool;
 
-    public static ChannelPool getInstance() {
-        if (instance == null) {
-            synchronized (ChannelPool.class) {
-                if (instance == null) {
-                    instance = new ChannelPool();
-                }
-            }
 
-        }
-        return instance;
+    private static final class InstanceHolder {
+        private static final ChannelPool instance = new ChannelPool();
+    }
+
+    public static ChannelPool getInstance()  {
+        return InstanceHolder.instance;
     }
 
     public GenericObjectPool<Channel> getInternalPool() {
@@ -64,7 +61,7 @@ public class ChannelPool implements Cloneable {
             for (int i = 0; i < defaultConfig.getMinIdle(); i++) {
                 internalPool.addObject();
             }
-        } catch (Exception e) {
+        }catch (Exception e){
             logger.error("Can not add Object to ChannelPool with root cause ", e);
         }
         logger.info("Create InternalPool with {} Channel in Pool", internalPool.getNumIdle());
@@ -75,7 +72,7 @@ public class ChannelPool implements Cloneable {
             internalPool.close();
             logger.info("InternalPool is close !");
         } catch (Exception e) {
-            logger.error("Could not destroy the pool with root cause ", e);
+            throw new CommonException("Could not destroy the pool", e);
         }
     }
 
@@ -83,12 +80,11 @@ public class ChannelPool implements Cloneable {
         try {
             if (channel.isOpen()) {
                 internalPool.returnObject(channel);
-
             } else {
                 internalPool.invalidateObject(channel);
             }
         } catch (Exception e) {
-            logger.error("Could not return the channel {} to the pool ith root cause ", channel.getChannelNumber(), e);
+            throw new CommonException("Could not return the resource to the pool", e);
         }
     }
 
@@ -98,12 +94,12 @@ public class ChannelPool implements Cloneable {
             return internalPool.borrowObject();
         } catch (NoSuchElementException nse) {
             if (null == nse.getCause()) {
-                logger.error("The exception was caused by an exhausted pool", nse);
-
+                logger.error("The exception was caused by an exhausted pool");
+                throw new CommonException("Could not get a resource since the pool is exhausted", nse);
             }
-            throw new CommonException("Could not get Channel from the pool", nse);
+            throw new CommonException("Could not get a resource from the pool", nse);
         } catch (Exception e) {
-            throw new CommonException("Could not get Channel from the pool", e);
+            throw new CommonException("Could not get a resource from the pool", e);
         }
     }
 

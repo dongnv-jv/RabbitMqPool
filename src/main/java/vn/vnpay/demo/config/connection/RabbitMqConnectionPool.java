@@ -1,4 +1,4 @@
-package vn.vnpay.demo.config.connectionpoolconfig;
+package vn.vnpay.demo.config.connection;
 
 import com.rabbitmq.client.Connection;
 import org.apache.commons.pool2.impl.GenericObjectPool;
@@ -12,24 +12,19 @@ import java.util.NoSuchElementException;
 
 public class RabbitMqConnectionPool implements Cloneable {
 
-    private volatile static RabbitMqConnectionPool instance;
     private final Logger logger = LoggerFactory.getLogger(RabbitMqConnectionPool.class);
     private GenericObjectPool<Connection> internalPool;
 
 
-    public static RabbitMqConnectionPool getInstance() {
-        if (instance == null) {
-            synchronized (RabbitMqConnectionPool.class) {
-                if (instance == null) {
-                    instance = new RabbitMqConnectionPool();
-                }
-            }
-
-        }
-        return instance;
+    private static final class InstanceHolder {
+        private static final RabbitMqConnectionPool instance = new RabbitMqConnectionPool();
     }
 
-    public RabbitMqConnectionPool() {
+    public static RabbitMqConnectionPool getInstance() {
+        return InstanceHolder.instance;
+    }
+
+    public RabbitMqConnectionPool()  {
         RabbitMqConnectionFactory rabbitMqConnectionFactory = RabbitMqConnectionFactory.getInstance();
         int maxTotal = 5;
         int minIdle = 5;
@@ -61,13 +56,9 @@ public class RabbitMqConnectionPool implements Cloneable {
         }
         internalPool = new GenericObjectPool<>(rabbitMqConnectionFactory, defaultConfig);
         try {
-            for (int i = 0; i < defaultConfig.getMinIdle(); i++) {
-                internalPool.addObject();
-            }
+            internalPool.preparePool(); // Tạo ra số lượng đối tượng bằng minIdle và đưa chúng vào pool
         } catch (Exception e) {
-            logger.error("Can not add Object to ConnectionPool with root cause ", e);
-        } catch (Error thr) {
-            logger.error("Can not add Object to ConnectionPool with root cause ", thr);
+            logger.error("Create InternalPool fail with root cause ", e);
         }
     }
 
@@ -100,13 +91,17 @@ public class RabbitMqConnectionPool implements Cloneable {
         } catch (NoSuchElementException nse) {
             if (null == nse.getCause()) {
                 logger.error("The exception was caused by an exhausted pool");
-                throw new CommonException("Could not get a Connection since the pool is exhausted", nse);
+                throw new CommonException("Could not get a resource since the pool is exhausted", nse);
             }
             logger.error("the exception was caused by the implemented activateObject() or ValidateObject()");
-            throw new CommonException("Could not get a Connection from the pool", nse);
+            throw new CommonException("Could not get a resource from the pool", nse);
         } catch (Exception e) {
-            throw new CommonException("Could not get a Connection from the pool", e);
+            throw new CommonException("Could not get a resource from the pool", e);
         }
+    }
+
+    public GenericObjectPool<Connection> getInternalPool() {
+        return internalPool;
     }
 
 
