@@ -48,17 +48,17 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
         logger.info("Start sendToExchange in ExchangeMessageServiceImpl ");
         Executor executor = ThreadPoolConfig.getExecutor();
         exchange.createExchangeAndQueue();
+        ChannelPool channelPool = ChannelPool.getInstance();
         for (int i = 0; i < 100; i++) {
-            this.sendToExchange(message, exchange, executor);
+            this.sendToExchange(message, exchange, executor, channelPool);
         }
         long end = System.currentTimeMillis();
         logger.info("Process sendToExchange in ExchangeMessageServiceImpl take {} millisecond", (end - start));
     }
 
-    private void sendToExchange(Object message, BaseExchange exchange, Executor executor) {
+    private void sendToExchange(Object message, BaseExchange exchange, Executor executor, ChannelPool channelPool) {
 
         executor.execute(() -> {
-            ChannelPool channelPool = ChannelPool.getInstance();
             Channel channel = null;
             try {
                 channel = channelPool.getChannel();
@@ -103,15 +103,16 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
         long start = System.currentTimeMillis();
         logger.info("Start getMessageFromQueue in ExchangeMessageServiceImpl ");
         Executor executor = ThreadPoolConfig.getExecutor();
+        ChannelPool channelPool = ChannelPool.getInstance();
         List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> executor.execute(() -> {
                 try {
-                    getMessageFromQueue(queueName, executor, clazz);
+                    getMessageFromQueue(queueName, clazz, channelPool);
                 } catch (Exception e) {
                     logger.error(" Receiver message from queue {} failed with root cause ", queueName, e);
                 }
-            });
+            }));
             futures.add(future);
         }
         CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
@@ -122,21 +123,17 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
 
     }
 
-    private <T> void getMessageFromQueue(String queueName, Executor executor, Class<T> clazz) {
-        ChannelPool channelPool = ChannelPool.getInstance();
-        executor.execute(() -> {
-            try {
-                Channel channel = channelPool.getChannel();
-                int prefetchCount = 1;
-                channel.basicQos(prefetchCount);
-                this.getMessageFromQueue(channel, queueName, clazz);
-                Thread.sleep(300);
-                channelPool.returnChannel(channel);
-            } catch (Exception e) {
-                logger.error(" Receiver message from queue {} failed with root cause ", queueName, e);
-            }
-        });
-
+    private <T> void getMessageFromQueue(String queueName, Class<T> clazz, ChannelPool channelPool) {
+        try {
+            Channel channel = channelPool.getChannel();
+            int prefetchCount = 1;
+            channel.basicQos(prefetchCount);
+            this.getMessageFromQueue(channel, queueName, clazz);
+            Thread.sleep(300);
+            channelPool.returnChannel(channel);
+        } catch (Exception e) {
+            logger.error(" Receiver message from queue {} failed with root cause ", queueName, e);
+        }
     }
 
     private <T> void getMessageFromQueue(Channel channel, String queueName, Class<T> clazz) throws IOException {

@@ -13,7 +13,7 @@ import java.lang.reflect.InvocationTargetException;
 
 public class TestChannelPool {
 
-    @CustomValue("exchange.fanout.queue.name-2")
+    @CustomValue("exchange.fanout.queue.name-3")
     private static String queueName;
 
     public static void main(String[] args) throws IllegalAccessException, ClassNotFoundException, InstantiationException, InvocationTargetException, NoSuchMethodException {
