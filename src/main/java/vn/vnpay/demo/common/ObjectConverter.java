@@ -1,0 +1,20 @@
+package vn.vnpay.demo.common;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.IOException;
+
+public class ObjectConverter {
+
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    // Chuyển đổi một đối tượng thành một mảng byte
+    public static byte[] objectToBytes(Object object) throws IOException {
+        return objectMapper.writeValueAsBytes(object);
+    }
+
+    // Chuyển đổi một mảng byte thành một đối tượng
+    public static <T> T bytesToObject(byte[] bytes, Class<T> clazz) throws IOException {
+        return objectMapper.readValue(bytes, clazz);
+    }
+}

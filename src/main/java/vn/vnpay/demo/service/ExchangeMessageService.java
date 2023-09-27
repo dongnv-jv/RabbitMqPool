@@ -4,6 +4,6 @@ import vn.vnpay.demo.factory.BaseExchange;
 
 public interface ExchangeMessageService {
 
-     void sendMessage(String message, BaseExchange exchange);
+     void sendMessage(Object message, BaseExchange exchange);
      void getMessageFromQueue(String queueName);
 }

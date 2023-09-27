@@ -31,16 +31,7 @@ public class ThreadPoolConfig {
             logger.error("Can not read value for ThreadPoolConfig from resource with root cause ", e);
             logger.info("Parameters of ThreadPoolConfig are used with default values ");
         }
-//        ThreadFactory threadFactory  =  new ThreadFactory() {
-//            @Override
-//            public Thread newThread(Runnable r) {
-//                Thread t = new Thread(r);
-//
-//                t.setUncaughtExceptionHandler((t1, e) -> LoggerFactory.getLogger(t1.getName()).error(e.getMessage(), e));
-//
-//                return t;
-//            }
-//        };
+
         BlockingQueue<Runnable> workQueue = new ArrayBlockingQueue<>(queueCapacity);
         executor = new ThreadPoolExecutor(corePoolSize,
                 maximumPoolSize,
