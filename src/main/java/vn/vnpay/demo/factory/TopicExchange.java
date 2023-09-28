@@ -13,7 +13,7 @@ public class TopicExchange implements BaseExchange {
 
     @CustomValue("exchange.topic.name")
     private String exchangeTopic;
-    @CustomValue("exchange.topic.routing.pattern-1")
+    @CustomValue("exchange.topic.routing.pattern-3")
     private String routingPattern;
     @CustomValue("exchange.topic.queueName")
     private String queueName;

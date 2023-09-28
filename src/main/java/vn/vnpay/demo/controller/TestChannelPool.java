@@ -1,6 +1,7 @@
 package vn.vnpay.demo.controller;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import vn.vnpay.demo.annotation.CustomValue;
 import vn.vnpay.demo.annotation.ValueInjector;
@@ -8,6 +9,7 @@ import vn.vnpay.demo.config.CommonConfig;
 import vn.vnpay.demo.domain.Student;
 import vn.vnpay.demo.factory.BaseExchange;
 import vn.vnpay.demo.factory.DirectExchange;
+import vn.vnpay.demo.factory.TopicExchange;
 import vn.vnpay.demo.service.ExchangeMessageService;
 import vn.vnpay.demo.service.impl.ExchangeMessageServiceImpl;
 
@@ -15,7 +17,7 @@ public class TestChannelPool {
 
     @CustomValue("exchange.header.queueName")
     private static String queueName;
-    @CustomValue("exchange.direct.name")
+    @CustomValue("exchange.topic.name")
     private static String exchangeName;
     @CustomValue("exchange.topic.routingKey")
     private static String routingKey;
@@ -32,7 +34,7 @@ public class TestChannelPool {
 
 
 // Inject values to Exchange
-        BaseExchange exchange = new DirectExchange();
+        BaseExchange exchange = new TopicExchange();
         ValueInjector.injectValues(exchange);
 
         appConfig.configure();
@@ -41,6 +43,9 @@ public class TestChannelPool {
         ExchangeMessageService exchangeMessageService = new ExchangeMessageServiceImpl();
         ValueInjector.injectValues(exchangeMessageService);
         Map<String, Object> mapPropsForHeaders = Collections.emptyMap();
+        mapPropsForHeaders = new HashMap<>();
+        mapPropsForHeaders.put("key", "key1");
+        mapPropsForHeaders.put("role", "Admin");
         exchangeMessageService.sendMessage(new Student(1, "Nguyễn Văn A", 23), exchange, routingKey, exchangeName, mapPropsForHeaders);
 // Receiver message from queue
 //        exchangeMessageService.getMessageFromQueue(queueName, String.class);

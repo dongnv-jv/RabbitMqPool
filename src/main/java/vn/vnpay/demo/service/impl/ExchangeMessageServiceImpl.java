@@ -35,24 +35,32 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
     @CustomValue("exchange.dead.letter.queueName")
     private String deadLetterQueueName;
 
-    private void handleSendFaileMessage(Channel channel) throws IOException {
-        channel.addReturnListener((replyCode, replyText, exchange, routingKey, properties, body) -> logger.error("Message send failed because wrong routing key : {} with exchange : {}", routingKey, exchange));
+    private volatile boolean hasFailedMessage = false;
 
-        channel.confirmSelect();
-        channel.addConfirmListener(new ConfirmListener() {
-            @Override
-            public void handleAck(long deliveryTag, boolean multiple) {
-                // do nothing
-            }
+    private synchronized void handleSendFailedMessage(Channel channel) {
 
-            @Override
-            public void handleNack(long deliveryTag, boolean multiple) {
-                logger.info("Failed to send message to Rabbit server with deliveryTag: {} ", deliveryTag);
-            }
-        });
+        if (!hasFailedMessage) {
+            channel.addReturnListener((replyCode, replyText, exchange, routingKey, properties, body) -> {
+                channel.basicPublish(deadLetterExchange, deadLetterRoutingKey, false, null, body);
+                logger.error("Message send failed because wrong routing key : {} with exchange : {}", routingKey, exchange);
+                hasFailedMessage = true; // Đánh dấu rằng đã có lỗi
+            });
+
+
+            channel.addConfirmListener(new ConfirmListener() {
+                @Override
+                public void handleAck(long deliveryTag, boolean multiple) {
+                    // do nothing
+                }
+
+                @Override
+                public void handleNack(long deliveryTag, boolean multiple) {
+                    logger.info("Failed to send message to Rabbit server with deliveryTag: {} ", deliveryTag);
+                }
+            });
+        }
 
     }
-
 
     public void sendMessage(Object message, BaseExchange exchange, String routingKey, String exchangeName, Map<String, Object> mapPropsForHeaders) {
         long start = System.currentTimeMillis();
@@ -60,7 +68,7 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
         Executor executor = ThreadPoolConfig.getExecutor();
         exchange.createExchangeAndQueue();
         ChannelPool channelPool = ChannelPool.getInstance();
-        for (int i = 0; i < 50; i++) {
+        for (int i = 0; i < 100; i++) {
             executor.execute(() -> this.sendToExchange(message, channelPool, routingKey, exchangeName, mapPropsForHeaders));
         }
         long end = System.currentTimeMillis();
@@ -72,7 +80,8 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
         Channel channel = null;
         try {
             channel = channelPool.getChannel();
-            this.handleSendFaileMessage(channel);
+            channel.confirmSelect();
+            this.handleSendFailedMessage(channel);
             AMQP.BasicProperties props = new AMQP.BasicProperties();
             props = props.builder().headers(mapPropsForHeaders).build();
             channel.basicPublish(exchangeName, routingKey, true, props, ObjectConverter.objectToBytes(message));
