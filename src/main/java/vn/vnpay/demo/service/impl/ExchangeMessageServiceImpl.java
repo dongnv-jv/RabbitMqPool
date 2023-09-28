@@ -46,19 +46,17 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
             channel.basicPublish(deadLetterExchange, deadLetterRoutingKey,false ,null, body);
         });
 
-
-
         channel.confirmSelect();
-        channel.addConfirmListener(new ConfirmListener() {
-            @Override
-            public void handleAck(long deliveryTag, boolean multiple) {
-                logger.info("Message sent to Rabbit server successfully with deliveryTag: {}" , deliveryTag);
-            }
-            @Override
-            public void handleNack(long deliveryTag, boolean multiple) {
-                logger.info("Failed to send message to Rabbit server with deliveryTag: {} " ,deliveryTag);
-            }
-        });
+//        channel.addConfirmListener(new ConfirmListener() {
+//            @Override
+//            public void handleAck(long deliveryTag, boolean multiple) {
+//                logger.info("Message sent to Rabbit server successfully with deliveryTag: {}" , deliveryTag);
+//            }
+//            @Override
+//            public void handleNack(long deliveryTag, boolean multiple) {
+//                logger.info("Failed to send message to Rabbit server with deliveryTag: {} " ,deliveryTag);
+//            }
+//        });
 
     }
 
@@ -69,7 +67,7 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
         Executor executor = ThreadPoolConfig.getExecutor();
         exchange.createExchangeAndQueue();
         ChannelPool channelPool = ChannelPool.getInstance();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 50; i++) {
             this.sendToExchange(message, executor, channelPool, routingKey, exchangeName, mapPropsForHeaders);
         }
         long end = System.currentTimeMillis();
