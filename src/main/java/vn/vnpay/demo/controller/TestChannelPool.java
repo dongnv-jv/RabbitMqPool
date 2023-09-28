@@ -1,18 +1,15 @@
 package vn.vnpay.demo.controller;
 
+import java.util.Collections;
+import java.util.Map;
 import vn.vnpay.demo.annotation.CustomValue;
 import vn.vnpay.demo.annotation.ValueInjector;
 import vn.vnpay.demo.config.CommonConfig;
 import vn.vnpay.demo.domain.Student;
 import vn.vnpay.demo.factory.BaseExchange;
-import vn.vnpay.demo.factory.DeadLetterExchange;
 import vn.vnpay.demo.factory.DirectExchange;
-import vn.vnpay.demo.factory.FanoutExchange;
 import vn.vnpay.demo.service.ExchangeMessageService;
 import vn.vnpay.demo.service.impl.ExchangeMessageServiceImpl;
-
-import java.util.Collections;
-import java.util.Map;
 
 public class TestChannelPool {
 

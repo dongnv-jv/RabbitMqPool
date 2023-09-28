@@ -6,33 +6,28 @@ import com.rabbitmq.client.ConfirmListener;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import vn.vnpay.demo.annotation.CustomValue;
-import vn.vnpay.demo.common.ObjectConverter;
-import vn.vnpay.demo.common.PropertiesFactory;
-import vn.vnpay.demo.config.channel.ChannelPool;
-import vn.vnpay.demo.config.threadpool.ThreadPoolConfig;
-import vn.vnpay.demo.domain.Student;
-import vn.vnpay.demo.factory.BaseExchange;
-import vn.vnpay.demo.service.ExchangeMessageService;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import vn.vnpay.demo.annotation.CustomValue;
+import vn.vnpay.demo.common.ObjectConverter;
+import vn.vnpay.demo.config.channel.ChannelPool;
+import vn.vnpay.demo.config.threadpool.ThreadPoolConfig;
+import vn.vnpay.demo.domain.Student;
+import vn.vnpay.demo.factory.BaseExchange;
+import vn.vnpay.demo.service.ExchangeMessageService;
 
 public class ExchangeMessageServiceImpl implements ExchangeMessageService {
     private final Logger logger = LoggerFactory.getLogger(ExchangeMessageServiceImpl.class);
-    static String charSet = PropertiesFactory.getFromProperties("charset.Name");
-    AtomicInteger count = new AtomicInteger(0);
-
+    @CustomValue("charset.Name")
+    private String charSet;
     @CustomValue("exchange.direct.queueName")
     private String queueName;
-
     @CustomValue("exchange.dead.letter.name")
     private String deadLetterExchange;
     @CustomValue("exchange.dead.letter.routingKey")
@@ -41,22 +36,20 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
     private String deadLetterQueueName;
 
     private void handleSendFaileMessage(Channel channel) throws IOException {
-        channel.addReturnListener((replyCode, replyText, exchange, routingKey, properties, body) -> {
-            logger.error("Message send failed ! " );
-            channel.basicPublish(deadLetterExchange, deadLetterRoutingKey,false ,null, body);
-        });
+        channel.addReturnListener((replyCode, replyText, exchange, routingKey, properties, body) -> logger.error("Message send failed because wrong routing key : {} with exchange : {}", routingKey, exchange));
 
         channel.confirmSelect();
-//        channel.addConfirmListener(new ConfirmListener() {
-//            @Override
-//            public void handleAck(long deliveryTag, boolean multiple) {
-//                logger.info("Message sent to Rabbit server successfully with deliveryTag: {}" , deliveryTag);
-//            }
-//            @Override
-//            public void handleNack(long deliveryTag, boolean multiple) {
-//                logger.info("Failed to send message to Rabbit server with deliveryTag: {} " ,deliveryTag);
-//            }
-//        });
+        channel.addConfirmListener(new ConfirmListener() {
+            @Override
+            public void handleAck(long deliveryTag, boolean multiple) {
+                // do nothing
+            }
+
+            @Override
+            public void handleNack(long deliveryTag, boolean multiple) {
+                logger.info("Failed to send message to Rabbit server with deliveryTag: {} ", deliveryTag);
+            }
+        });
 
     }
 
@@ -68,32 +61,30 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
         exchange.createExchangeAndQueue();
         ChannelPool channelPool = ChannelPool.getInstance();
         for (int i = 0; i < 50; i++) {
-            this.sendToExchange(message, executor, channelPool, routingKey, exchangeName, mapPropsForHeaders);
+            executor.execute(() -> this.sendToExchange(message, channelPool, routingKey, exchangeName, mapPropsForHeaders));
         }
         long end = System.currentTimeMillis();
         logger.info("Process sendToExchange in ExchangeMessageServiceImpl take {} millisecond", (end - start));
     }
 
-    private void sendToExchange(Object message, Executor executor, ChannelPool channelPool, String routingKey, String exchangeName, Map<String, Object> mapPropsForHeaders) {
+    private void sendToExchange(Object message, ChannelPool channelPool, String routingKey, String exchangeName, Map<String, Object> mapPropsForHeaders) {
 
-        executor.execute(() -> {
-            Channel channel = null;
-            try {
-                channel = channelPool.getChannel();
-                handleSendFaileMessage(channel);
-                AMQP.BasicProperties props = new AMQP.BasicProperties();
-                props = props.builder().headers(mapPropsForHeaders).build();
-                channel.basicPublish(exchangeName, routingKey,true, props, ObjectConverter.objectToBytes(message));
-                channel.waitForConfirmsOrDie(1000);
+        Channel channel = null;
+        try {
+            channel = channelPool.getChannel();
+            this.handleSendFaileMessage(channel);
+            AMQP.BasicProperties props = new AMQP.BasicProperties();
+            props = props.builder().headers(mapPropsForHeaders).build();
+            channel.basicPublish(exchangeName, routingKey, true, props, ObjectConverter.objectToBytes(message));
+            channel.waitForConfirmsOrDie(1000);
 
-            } catch (Exception e) {
-                logger.error(" Send message to exchange failed with root cause ", e);
-            } finally {
-                if (channel != null) {
-                    channelPool.returnChannel(channel);
-                }
+        } catch (Exception e) {
+            logger.error(" Send message to exchange failed with root cause ", e);
+        } finally {
+            if (channel != null) {
+                channelPool.returnChannel(channel);
             }
-        });
+        }
     }
 
     public <T> void getMessageFromQueue(String queueName, Class<T> clazz) {

@@ -1,8 +1,7 @@
 package vn.vnpay.demo.service;
 
-import vn.vnpay.demo.factory.BaseExchange;
-
 import java.util.Map;
+import vn.vnpay.demo.factory.BaseExchange;
 
 public interface ExchangeMessageService {
 

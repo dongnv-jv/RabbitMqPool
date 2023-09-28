@@ -1,13 +1,12 @@
 package vn.vnpay.demo.config.connection;
 
 import com.rabbitmq.client.Connection;
+import java.util.NoSuchElementException;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.vnpay.demo.exception.CommonException;
-
-import java.util.NoSuchElementException;
 
 public class RabbitMqConnectionPool implements Cloneable {
     private volatile static RabbitMqConnectionPool instance;

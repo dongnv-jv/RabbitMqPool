@@ -1,7 +1,9 @@
 package vn.vnpay.demo.domain;
 
-import com.rabbitmq.client.*;
-
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,12 +40,12 @@ public class RabbitMQSetupStuff {
 
     private static void deadLetterQueueAndExchange(Channel channel) throws IOException {
         channel.queueDelete(DLQ1);
-        channel.queueDeclare(DLQ1, true, false, false,new HashMap<>());
+        channel.queueDeclare(DLQ1, true, false, false, new HashMap<>());
 
         channel.exchangeDelete(DLX1);
         channel.exchangeDeclare(DLX1, "topic");
 
-        channel.queueBind(DLQ1,DLX1,DLROUTINGKEY + ".#");
+        channel.queueBind(DLQ1, DLX1, DLROUTINGKEY + ".#");
     }
 
     private static void exchange1(Channel channel) throws IOException {
@@ -55,7 +57,7 @@ public class RabbitMQSetupStuff {
     private static void q1(Channel channel) throws IOException {
         Map<String, Object> arguments = argumentsDeadletterQueue();
         channel.queueDelete(QUEUE1);
-        channel.queueDeclare(QUEUE1, true, false, false,arguments);
+        channel.queueDeclare(QUEUE1, true, false, false, arguments);
     }
 
     private static Map<String, Object> argumentsDeadletterQueue() {
@@ -71,7 +73,7 @@ public class RabbitMQSetupStuff {
     }
 
     private static ConnectionFactory connectionFactory() {
-        ConnectionFactory connectionFactory  = new ConnectionFactory();
+        ConnectionFactory connectionFactory = new ConnectionFactory();
         connectionFactory.setHost("dingo.rmq.cloudamqp.com");
         connectionFactory.setPort(5672);
         connectionFactory.setUsername("wqmrgbxx");

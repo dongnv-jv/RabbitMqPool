@@ -2,15 +2,14 @@ package vn.vnpay.demo.factory;
 
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.vnpay.demo.annotation.CustomValue;
 import vn.vnpay.demo.annotation.ValueKeyMap;
 import vn.vnpay.demo.config.channel.ChannelPool;
-
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 public class FanoutExchange implements BaseExchange {
 
@@ -25,7 +24,7 @@ public class FanoutExchange implements BaseExchange {
     private String deadLetterRoutingKey;
 
 
-    private  Map<String, Object> argumentsDeadLetterQueue() {
+    private Map<String, Object> argumentsDeadLetterQueue() {
         Map<String, Object> arguments = new HashMap<>();
         arguments.put("x-message-ttl", 20000);
         arguments.put("x-dead-letter-exchange", deadLetterExchange);
@@ -42,7 +41,7 @@ public class FanoutExchange implements BaseExchange {
         try {
             channel = channelPool.getChannel();
             final Channel finalChannel = channel;
-            channel.exchangeDeclare(exchangeFanout, BuiltinExchangeType.FANOUT, true );
+            channel.exchangeDeclare(exchangeFanout, BuiltinExchangeType.FANOUT, true);
             listQueueFanout.forEach((key, value) -> {
                 try {
                     finalChannel.queueDeclare(value, true, false, false, argumentsDeadLetterQueue());

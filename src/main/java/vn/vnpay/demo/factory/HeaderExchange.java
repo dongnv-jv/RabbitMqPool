@@ -2,14 +2,13 @@ package vn.vnpay.demo.factory;
 
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.vnpay.demo.annotation.CustomValue;
 import vn.vnpay.demo.annotation.ValueKeyMap;
 import vn.vnpay.demo.common.CommonConstant;
 import vn.vnpay.demo.config.channel.ChannelPool;
-
-import java.util.Map;
 
 public class HeaderExchange implements BaseExchange {
     Logger logger = LoggerFactory.getLogger(HeaderExchange.class);

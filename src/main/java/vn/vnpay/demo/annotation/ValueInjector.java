@@ -1,12 +1,11 @@
 package vn.vnpay.demo.annotation;
 
-import vn.vnpay.demo.common.PropertiesFactory;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
+import vn.vnpay.demo.common.PropertiesFactory;
 
 public class ValueInjector {
     public static void injectValues(Object target) throws IllegalAccessException {

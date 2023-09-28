@@ -1,10 +1,9 @@
 package vn.vnpay.demo.exception;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RejectedExecution implements RejectedExecutionHandler {
     private final Logger logger = LoggerFactory.getLogger(RejectedExecution.class);
