@@ -6,6 +6,7 @@ import vn.vnpay.demo.config.channel.ChannelFactory;
 import vn.vnpay.demo.config.channel.ChannelPool;
 import vn.vnpay.demo.config.connection.RabbitMqConnectionFactory;
 import vn.vnpay.demo.config.connection.RabbitMqConnectionPool;
+
 @Component
 public class CommonConfig {
     @CustomValue("rabbitMq.host")
@@ -28,20 +29,19 @@ public class CommonConfig {
     private boolean blockWhenExhaustedConnPool;
 
     @CustomValue("channel.pool.maxTotal")
-    private int maxTotalChannelPool ;
+    private int maxTotalChannelPool;
     @CustomValue("channel.pool.maxIdle")
-    private int minIdleChannelPool ;
+    private int minIdleChannelPool;
     @CustomValue("channel.pool.minIdle")
-    private int maxIdleChannelPool ;
+    private int maxIdleChannelPool;
     @CustomValue("channel.pool.blockWhenExhausted")
-    private boolean blockWhenExhaustedChannelPool ;
+    private boolean blockWhenExhaustedChannelPool;
 
     public void configure() {
         RabbitMqConnectionFactory factory = RabbitMqConnectionFactory.getInstance(host, port, username, password, virtualHost);
-        RabbitMqConnectionPool rabbitMqConnectionPool =  RabbitMqConnectionPool.getInstance(maxTotalConnPool, minIdleConnPool, maxIdleConnPool, blockWhenExhaustedConnPool,factory);
+        RabbitMqConnectionPool rabbitMqConnectionPool = RabbitMqConnectionPool.getInstance(maxTotalConnPool, minIdleConnPool, maxIdleConnPool, blockWhenExhaustedConnPool, factory);
         ChannelFactory channelFactory = ChannelFactory.getInstance(rabbitMqConnectionPool);
-         ChannelPool.init(maxTotalChannelPool,minIdleChannelPool,maxIdleChannelPool,blockWhenExhaustedChannelPool,channelFactory);
-
+        ChannelPool.init(maxTotalChannelPool, minIdleChannelPool, maxIdleChannelPool, blockWhenExhaustedChannelPool, channelFactory);
 
 
     }

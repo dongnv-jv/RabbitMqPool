@@ -4,42 +4,48 @@ import vn.vnpay.demo.annotation.CustomValue;
 import vn.vnpay.demo.annotation.ValueInjector;
 import vn.vnpay.demo.config.CommonConfig;
 import vn.vnpay.demo.domain.Student;
-import vn.vnpay.demo.factory.DirectExchange;
+import vn.vnpay.demo.factory.BaseExchange;
+import vn.vnpay.demo.factory.DeadLetterExchange;
 import vn.vnpay.demo.factory.FanoutExchange;
 import vn.vnpay.demo.service.ExchangeMessageService;
 import vn.vnpay.demo.service.impl.ExchangeMessageServiceImpl;
 
-import java.lang.reflect.InvocationTargetException;
+import java.util.Collections;
+import java.util.Map;
 
 public class TestChannelPool {
 
-    @CustomValue("exchange.fanout.queue.name-3")
+    @CustomValue("exchange.header.queueName")
     private static String queueName;
+    @CustomValue("exchange.fanout.name")
+    private static String exchangeName;
+    @CustomValue("exchange.direct.routingKey")
+    private static String routingKey;
 
-    public static void main(String[] args) throws IllegalAccessException, ClassNotFoundException, InstantiationException, InvocationTargetException, NoSuchMethodException {
+    public static void main(String[] args) throws IllegalAccessException {
 
-
+// Inject values to TestChannelPool
         TestChannelPool testChannelPool = new TestChannelPool();
         ValueInjector.injectValues(testChannelPool);
+
+// Inject values to CommonConfig
         CommonConfig appConfig = new CommonConfig();
         ValueInjector.injectValues(appConfig);
-        DirectExchange directExchange = new DirectExchange();
-        ValueInjector.injectValues(directExchange);
-//
-//        HeaderExchange headerExchange = new HeaderExchange();
-//        ValueInjector.injectValues(headerExchange);
 
-        FanoutExchange fanoutExchange = new FanoutExchange();
+
+// Inject values to Exchange
+        BaseExchange fanoutExchange = new FanoutExchange();
         ValueInjector.injectValues(fanoutExchange);
 
         appConfig.configure();
 
-        directExchange.createExchangeAndQueue();
+        fanoutExchange.createExchangeAndQueue();
         ExchangeMessageService exchangeMessageService = new ExchangeMessageServiceImpl();
         ValueInjector.injectValues(exchangeMessageService);
-        exchangeMessageService.sendMessage(new Student(1, "Nguyễn Văn A", 23), directExchange);
-
-        exchangeMessageService.getMessageFromQueue(queueName,String.class);
+        Map<String, Object> mapPropsForHeaders = Collections.emptyMap();
+        exchangeMessageService.sendMessage(new Student(1, "Nguyễn Văn A", 23), fanoutExchange, routingKey, exchangeName, mapPropsForHeaders);
+// Receiver message from queue
+//        exchangeMessageService.getMessageFromQueue(queueName, String.class);
     }
 }
 

@@ -19,7 +19,7 @@ public class CommonConstant {
     public static final String QUEUE_NAME_DIRECT_2 = "direct-queue-2";
     public static final String QUEUE_NAME_DIRECT_3 = "direct-queue-3";
 
-    public static final  String ROUTING_KEY_DIRECT_1 = "direct-key-1";
+    public static final String ROUTING_KEY_DIRECT_1 = "direct-key-1";
     public static final String ROUTING_KEY_DIRECT_2 = "direct-key-2";
     public static final String ROUTING_KEY_DIRECT_3 = "direct-key-3";
 
@@ -34,7 +34,6 @@ public class CommonConstant {
     public static final String ROUTING_PATTERN_2 = "asia.#";
     public static final String ROUTING_KEY_2 = "asia.viet.nam";
     public static final String ROUTING_PATTERN_3 = "asia.*.*";
-
 
 
     // Header exchange

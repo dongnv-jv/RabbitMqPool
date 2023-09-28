@@ -8,8 +8,6 @@ import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vn.vnpay.demo.common.PropertiesFactory;
-import vn.vnpay.demo.config.channel.ChannelFactory;
 
 import java.io.IOException;
 import java.net.URISyntaxException;

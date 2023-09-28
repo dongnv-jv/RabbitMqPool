@@ -17,7 +17,6 @@ public class HeaderExchange implements BaseExchange {
     Map<String, Object> arguments;
     @CustomValue("exchange.header.name")
     private String exchangeHeader;
-
     @CustomValue("exchange.header.queueName")
     private String queueName;
 

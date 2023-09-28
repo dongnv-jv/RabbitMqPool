@@ -2,15 +2,17 @@ package vn.vnpay.demo.annotation;
 
 import vn.vnpay.demo.common.PropertiesFactory;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.HashMap;
+import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.Map;
 
 public class ValueInjector {
     public static void injectValues(Object target) throws IllegalAccessException {
         Field[] fields = target.getClass().getDeclaredFields();
         for (Field field : fields) {
-            if(field.isAnnotationPresent(ValueKeyMap.class)){
+            if (field.isAnnotationPresent(ValueKeyMap.class)) {
                 ValueKeyMap valueKeyMap = field.getAnnotation(ValueKeyMap.class);
                 String key = valueKeyMap.value();
                 field.setAccessible(true);
@@ -39,13 +41,13 @@ public class ValueInjector {
     }
 
 
-//    public static void injectProperties(List<Class<?>> classes) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-//        for (Class<?> clazz : classes) {
-//            if (clazz.isAnnotationPresent(Component.class)) {
-//                Constructor<?> constructor = clazz.getConstructor();
-//                Object instance = constructor.newInstance();
-//                injectValues(instance);
-//            }
-//        }
-//    }
+    public static void injectProperties(List<Class<?>> classes) throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, InvocationTargetException {
+        for (Class<?> clazz : classes) {
+            if (clazz.isAnnotationPresent(Component.class)) {
+                Constructor<?> constructor = clazz.getConstructor();
+                Object instance = constructor.newInstance();
+                injectValues(instance);
+            }
+        }
+    }
 }

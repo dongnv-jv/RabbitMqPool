@@ -1,5 +1,6 @@
 package vn.vnpay.demo.factory;
 
+import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
