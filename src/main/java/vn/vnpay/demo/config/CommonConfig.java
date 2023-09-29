@@ -1,5 +1,7 @@
 package vn.vnpay.demo.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import vn.vnpay.demo.annotation.Component;
 import vn.vnpay.demo.annotation.CustomValue;
 import vn.vnpay.demo.config.channel.ChannelFactory;
@@ -9,6 +11,7 @@ import vn.vnpay.demo.config.connection.RabbitMqConnectionPool;
 
 @Component
 public class CommonConfig {
+    Logger logger = LoggerFactory.getLogger(CommonConfig.class);
     @CustomValue("rabbitMq.host")
     private String host;
     @CustomValue("rabbitMq.port")
@@ -27,7 +30,6 @@ public class CommonConfig {
     private int maxIdleConnPool;
     @CustomValue("connection.pool.blockWhenExhausted")
     private boolean blockWhenExhaustedConnPool;
-
     @CustomValue("channel.pool.maxTotal")
     private int maxTotalChannelPool;
     @CustomValue("channel.pool.maxIdle")
@@ -38,11 +40,15 @@ public class CommonConfig {
     private boolean blockWhenExhaustedChannelPool;
 
     public void configure() {
-        RabbitMqConnectionFactory factory = RabbitMqConnectionFactory.getInstance(host, port, username, password, virtualHost);
-        RabbitMqConnectionPool rabbitMqConnectionPool = RabbitMqConnectionPool.getInstance(maxTotalConnPool, minIdleConnPool, maxIdleConnPool, blockWhenExhaustedConnPool, factory);
-        ChannelFactory channelFactory = ChannelFactory.getInstance(rabbitMqConnectionPool);
-        ChannelPool.init(maxTotalChannelPool, minIdleChannelPool, maxIdleChannelPool, blockWhenExhaustedChannelPool, channelFactory);
-
+        try {
+            RabbitMqConnectionFactory connectionFactoryFactory = RabbitMqConnectionFactory.getInstance(host, port, username, password, virtualHost);
+            RabbitMqConnectionPool.initConnectionPool(maxTotalConnPool, minIdleConnPool, maxIdleConnPool, blockWhenExhaustedConnPool, connectionFactoryFactory);
+            RabbitMqConnectionPool rabbitMqConnectionPool = RabbitMqConnectionPool.getInstance();
+            ChannelFactory channelFactory = ChannelFactory.getInstance(rabbitMqConnectionPool);
+            ChannelPool.init(maxTotalChannelPool, minIdleChannelPool, maxIdleChannelPool, blockWhenExhaustedChannelPool, channelFactory);
+        } catch (Exception e) {
+            logger.error("Failed to configure RabbitMQ ", e);
+        }
 
     }
 

@@ -1,12 +1,13 @@
 package vn.vnpay.demo.config.channel;
 
 import com.rabbitmq.client.Channel;
-import java.util.NoSuchElementException;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.vnpay.demo.exception.CommonException;
+
+import java.util.NoSuchElementException;
 
 public class ChannelPool implements Cloneable {
 
@@ -80,7 +81,7 @@ public class ChannelPool implements Cloneable {
 
     public Channel getChannel() {
         try {
-            logger.info(" Quantity Channel is borrowed in Channel pool: {}", internalPool.getBorrowedCount());
+//            logger.info(" Quantity Channel is borrowed in Channel pool: {}", internalPool.getBorrowedCount());
             return internalPool.borrowObject(5000);
         } catch (NoSuchElementException nse) {
             logger.error("The exception was caused by an exhausted pool", nse);

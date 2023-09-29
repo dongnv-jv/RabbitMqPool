@@ -6,12 +6,6 @@ import com.rabbitmq.client.ConfirmListener;
 import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.vnpay.demo.annotation.CustomValue;
@@ -21,6 +15,10 @@ import vn.vnpay.demo.config.threadpool.ThreadPoolConfig;
 import vn.vnpay.demo.domain.Student;
 import vn.vnpay.demo.factory.BaseExchange;
 import vn.vnpay.demo.service.ExchangeMessageService;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.Executor;
 
 public class ExchangeMessageServiceImpl implements ExchangeMessageService {
     private final Logger logger = LoggerFactory.getLogger(ExchangeMessageServiceImpl.class);
@@ -34,7 +32,8 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
     private String deadLetterRoutingKey;
     @CustomValue("exchange.dead.letter.queueName")
     private String deadLetterQueueName;
-
+    @CustomValue("consumer.prefetchCount")
+    private int prefetchCount;
     private volatile boolean hasFailedMessage = false;
 
     private synchronized void handleSendFailedMessage(Channel channel) {
@@ -43,10 +42,9 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
             channel.addReturnListener((replyCode, replyText, exchange, routingKey, properties, body) -> {
                 channel.basicPublish(deadLetterExchange, deadLetterRoutingKey, false, null, body);
                 logger.error("Message send failed because wrong routing key : {} with exchange : {}", routingKey, exchange);
-                hasFailedMessage = true; // Đánh dấu rằng đã có lỗi
+                hasFailedMessage = true;
             });
-
-
+// Xác nhận rabbitServer có nhân message thành công hay không
             channel.addConfirmListener(new ConfirmListener() {
                 @Override
                 public void handleAck(long deliveryTag, boolean multiple) {
@@ -77,22 +75,21 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
 
     private void sendToExchange(Object message, ChannelPool channelPool, String routingKey, String exchangeName, Map<String, Object> mapPropsForHeaders) {
 
-        Channel channel = null;
+        Channel channel = channelPool.getChannel();
         try {
-            channel = channelPool.getChannel();
+
             channel.confirmSelect();
             this.handleSendFailedMessage(channel);
             AMQP.BasicProperties props = new AMQP.BasicProperties();
-            props = props.builder().headers(mapPropsForHeaders).build();
+            props = props.builder()
+                    .headers(mapPropsForHeaders).build();
             channel.basicPublish(exchangeName, routingKey, true, props, ObjectConverter.objectToBytes(message));
-            channel.waitForConfirmsOrDie(1000);
 
         } catch (Exception e) {
             logger.error(" Send message to exchange failed with root cause ", e);
         } finally {
-            if (channel != null) {
-                channelPool.returnChannel(channel);
-            }
+            channelPool.returnChannel(channel);
+
         }
     }
 
@@ -101,34 +98,32 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
         logger.info("Start getMessageFromQueue in ExchangeMessageServiceImpl ");
         Executor executor = ThreadPoolConfig.getExecutor();
         ChannelPool channelPool = ChannelPool.getInstance();
-        List<CompletableFuture<Void>> futures = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> executor.execute(() -> {
+            executor.execute(() -> {
                 try {
-                    getMessageFromQueue(queueName, clazz, channelPool);
+                    this.getMessageFromQueue(queueName, clazz, channelPool);
                 } catch (Exception e) {
                     logger.error(" Receiver message from queue {} failed with root cause ", queueName, e);
                 }
-            }));
-            futures.add(future);
+            });
+            long end = System.currentTimeMillis();
+            logger.info("Process getMessageFromQueue in ExchangeMessageServiceImpl take {} millisecond", (end - start));
+
         }
-        CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-        allOf.join();
-
-        long end = System.currentTimeMillis();
-        logger.info("Process getMessageFromQueue in ExchangeMessageServiceImpl take {} millisecond", (end - start));
-
     }
 
     private <T> void getMessageFromQueue(String queueName, Class<T> clazz, ChannelPool channelPool) {
+        Channel channel = null;
         try {
-            Channel channel = channelPool.getChannel();
-            int prefetchCount = 1;
-            channel.basicQos(prefetchCount);
+            channel = channelPool.getChannel();
+            channel.basicQos(prefetchCount); // Giới hạn số tin nhắn gửi đến consumer chưa được xác nhận
             this.getMessageFromQueue(channel, queueName, clazz);
-            channelPool.returnChannel(channel);
         } catch (Exception e) {
             logger.error(" Receiver message from queue {} failed with root cause ", queueName, e);
+        } finally {
+            if (channel != null) {
+                channelPool.returnChannel(channel);
+            }
         }
     }
 
@@ -136,7 +131,6 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
         Consumer consumer = new DefaultConsumer(channel) {
             @Override
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
-
                 try {
                     if (clazz.isAssignableFrom(String.class)) {
                         String message = new String(body, charSet);
@@ -145,18 +139,17 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
                     } else {
                         Student student = (Student) ObjectConverter.bytesToObject(body, clazz);
                         channel.basicAck(envelope.getDeliveryTag(), false);
-                        logger.info(" Message Received from Queue: {} with Student id=: {}", queueName, student.getId());
+                        logger.info(" Message Received from Queue: {} with Student id=: {} ", queueName, student.getId());
                     }
                 } catch (Exception e) {
                     logger.error(" Receiver message  from queue {} failed with root cause ", queueName, e);
-                    channel.basicReject(envelope.getDeliveryTag(), true);
+                    channel.basicReject(envelope.getDeliveryTag(), false);
                 }
-
             }
 
             @Override
             public void handleConsumeOk(String consumerTag) {
-                logger.info("Consumer {} registered successfully", consumerTag);
+                // do nothing
             }
 
             @Override
@@ -164,7 +157,6 @@ public class ExchangeMessageServiceImpl implements ExchangeMessageService {
                 logger.info("Consumer {} has been cancelled successfully", consumerTag);
             }
         };
-
         channel.basicConsume(queueName, false, consumer);
 
     }

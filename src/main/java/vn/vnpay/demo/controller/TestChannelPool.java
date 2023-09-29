@@ -1,26 +1,27 @@
 package vn.vnpay.demo.controller;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import vn.vnpay.demo.annotation.CustomValue;
 import vn.vnpay.demo.annotation.ValueInjector;
 import vn.vnpay.demo.config.CommonConfig;
 import vn.vnpay.demo.domain.Student;
 import vn.vnpay.demo.factory.BaseExchange;
-import vn.vnpay.demo.factory.DirectExchange;
-import vn.vnpay.demo.factory.TopicExchange;
+import vn.vnpay.demo.factory.impl.HeaderExchange;
 import vn.vnpay.demo.service.ExchangeMessageService;
 import vn.vnpay.demo.service.impl.ExchangeMessageServiceImpl;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TestChannelPool {
 
     @CustomValue("exchange.header.queueName")
     private static String queueName;
-    @CustomValue("exchange.topic.name")
+    @CustomValue("exchange.header.name")
     private static String exchangeName;
     @CustomValue("exchange.topic.routingKey")
     private static String routingKey;
+
 
     public static void main(String[] args) throws IllegalAccessException {
 
@@ -31,13 +32,12 @@ public class TestChannelPool {
 // Inject values to CommonConfig
         CommonConfig appConfig = new CommonConfig();
         ValueInjector.injectValues(appConfig);
-
+        appConfig.configure();
 
 // Inject values to Exchange
-        BaseExchange exchange = new TopicExchange();
+        BaseExchange exchange = new HeaderExchange();
         ValueInjector.injectValues(exchange);
 
-        appConfig.configure();
 
         exchange.createExchangeAndQueue();
         ExchangeMessageService exchangeMessageService = new ExchangeMessageServiceImpl();
@@ -48,7 +48,7 @@ public class TestChannelPool {
         mapPropsForHeaders.put("role", "Admin");
         exchangeMessageService.sendMessage(new Student(1, "Nguyễn Văn A", 23), exchange, routingKey, exchangeName, mapPropsForHeaders);
 // Receiver message from queue
-//        exchangeMessageService.getMessageFromQueue(queueName, String.class);
+//        exchangeMessageService.getMessageFromQueue(queueName, Student.class);
     }
 }
 

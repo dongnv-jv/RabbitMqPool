@@ -1,11 +1,16 @@
-package vn.vnpay.demo.factory;
+package vn.vnpay.demo.factory.impl;
 
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.vnpay.demo.annotation.CustomValue;
+import vn.vnpay.demo.common.CommonConstant;
 import vn.vnpay.demo.config.channel.ChannelPool;
+import vn.vnpay.demo.factory.BaseExchange;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class TopicExchange implements BaseExchange {
 
@@ -13,10 +18,14 @@ public class TopicExchange implements BaseExchange {
 
     @CustomValue("exchange.topic.name")
     private String exchangeTopic;
-    @CustomValue("exchange.topic.routing.pattern-3")
+    @CustomValue("exchange.topic.routing.pattern-1")
     private String routingPattern;
     @CustomValue("exchange.topic.queueName")
     private String queueName;
+    @CustomValue("exchange.dead.letter.name")
+    private String deadLetterExchange;
+    @CustomValue("exchange.dead.letter.routingKey")
+    private String deadLetterRoutingKey;
 
     @Override
     public void createExchangeAndQueue() {
@@ -27,7 +36,7 @@ public class TopicExchange implements BaseExchange {
         try {
             channel = channelPool.getChannel();
             channel.exchangeDeclare(exchangeTopic, BuiltinExchangeType.TOPIC, true);
-            channel.queueDeclare(queueName, true, false, false, null);
+            channel.queueDeclare(queueName, true, false, false, argumentsDeadLetterQueue());
             channel.queueBind(queueName, exchangeTopic, routingPattern);
             Long end = System.currentTimeMillis();
             logger.info(" Process createExchangeAndQueue in TopicExchange take {} millisecond ", (end - start));
@@ -38,6 +47,14 @@ public class TopicExchange implements BaseExchange {
             if (channel != null) {
                 channelPool.returnChannel(channel);
             }
+
         }
+    }
+
+    private Map<String, Object> argumentsDeadLetterQueue() {
+        Map<String, Object> argumentsDeadLetter = new HashMap<>();
+        argumentsDeadLetter.put(CommonConstant.X_DEAD_LETTER_EXCHANGE, deadLetterExchange);
+        argumentsDeadLetter.put(CommonConstant.X_DEAD_LETTER_ROUTING_KEY, deadLetterRoutingKey);
+        return argumentsDeadLetter;
     }
 }

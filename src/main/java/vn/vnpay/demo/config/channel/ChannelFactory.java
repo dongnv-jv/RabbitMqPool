@@ -9,13 +9,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.vnpay.demo.config.connection.RabbitMqConnectionPool;
 
+import java.io.IOException;
+import java.util.concurrent.TimeoutException;
+
 public class ChannelFactory implements PooledObjectFactory<Channel> {
 
     private static volatile ChannelFactory instance;
     private final Connection connection;
     private final Logger logger = LoggerFactory.getLogger(ChannelFactory.class);
 
-    public static ChannelFactory getInstance(RabbitMqConnectionPool connectionPool) {
+    public static ChannelFactory getInstance(RabbitMqConnectionPool connectionPool) throws IOException, TimeoutException {
         Connection connectionRaw = connectionPool.getConnection();
         if (instance == null) {
             synchronized (ChannelFactory.class) {
@@ -32,12 +35,14 @@ public class ChannelFactory implements PooledObjectFactory<Channel> {
         this.connection = connection;
     }
 
+    @Override
     public PooledObject<Channel> makeObject() throws Exception {
         Channel channel = connection.createChannel();
         logger.info(" Object Channel {} is creating ", channel.getChannelNumber());
         return new DefaultPooledObject<>(channel);
     }
 
+    @Override
     public void destroyObject(PooledObject<Channel> pooledObject) {
         final Channel channel = pooledObject.getObject();
         if (channel.isOpen()) {
@@ -49,15 +54,18 @@ public class ChannelFactory implements PooledObjectFactory<Channel> {
         }
     }
 
+    @Override
     public boolean validateObject(PooledObject<Channel> pooledObject) {
         final Channel channel = pooledObject.getObject();
         return channel.isOpen();
     }
 
+    @Override
     public void activateObject(PooledObject<Channel> pooledObject) {
         logger.info(" Object Channel {} is calling ", pooledObject.getObject().getChannelNumber());
     }
 
+    @Override
     public void passivateObject(PooledObject<Channel> pooledObject) {
         logger.info(" Object Channel {} is returning ", pooledObject.getObject().getChannelNumber());
     }

@@ -1,17 +1,16 @@
-package vn.vnpay.demo.factory;
+package vn.vnpay.demo.factory.impl;
 
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
-import java.util.HashMap;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.vnpay.demo.annotation.CustomValue;
 import vn.vnpay.demo.config.channel.ChannelPool;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class DeadLetterExchange {
-
-
     Logger logger = LoggerFactory.getLogger(DeadLetterExchange.class);
 
     @CustomValue("exchange.dead.letter.name")
@@ -30,12 +29,11 @@ public class DeadLetterExchange {
         try {
             channel = channelPool.getChannel();
             channel.exchangeDeclare(deadLetterExchange, BuiltinExchangeType.DIRECT);
-            Map<String, Object> args = new HashMap<String, Object>();
+            Map<String, Object> args = new HashMap<>();
             args.put("x-dead-letter-exchange", deadLetterExchange);
             args.put("x-dead-letter-routing-key", deadLetterRoutingKey);
             channel.queueDeclare(deadLetterQueueName, false, false, false, null);
             channel.queueBind(deadLetterQueueName, deadLetterExchange, deadLetterRoutingKey);
-
             Long end = System.currentTimeMillis();
             logger.info(" Process createExchangeAndQueue in DeadLetterExchange take {} milliSecond ", (end - start));
         } catch (Exception e) {

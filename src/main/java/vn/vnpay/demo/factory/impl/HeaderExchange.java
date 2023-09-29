@@ -1,14 +1,17 @@
-package vn.vnpay.demo.factory;
+package vn.vnpay.demo.factory.impl;
 
 import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.vnpay.demo.annotation.CustomValue;
 import vn.vnpay.demo.annotation.ValueKeyMap;
 import vn.vnpay.demo.common.CommonConstant;
 import vn.vnpay.demo.config.channel.ChannelPool;
+import vn.vnpay.demo.factory.BaseExchange;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class HeaderExchange implements BaseExchange {
     Logger logger = LoggerFactory.getLogger(HeaderExchange.class);
@@ -18,6 +21,12 @@ public class HeaderExchange implements BaseExchange {
     private String exchangeHeader;
     @CustomValue("exchange.header.queueName")
     private String queueName;
+    @CustomValue("exchange.header.x-match")
+    private String xMatch;
+    @CustomValue("exchange.dead.letter.name")
+    private String deadLetterExchange;
+    @CustomValue("exchange.dead.letter.routingKey")
+    private String deadLetterRoutingKey;
 
     public void createExchangeAndQueue() {
         Long start = System.currentTimeMillis();
@@ -27,9 +36,9 @@ public class HeaderExchange implements BaseExchange {
         try {
             channel = channelPool.getChannel();
             channel.exchangeDeclare(exchangeHeader, BuiltinExchangeType.HEADERS, true);
-            arguments.put(CommonConstant.X_MATCH, CommonConstant.X_MATCH_ANY);
+            arguments.put(CommonConstant.X_MATCH, xMatch);
             arguments.forEach((key, value) -> logger.info("CreateExchangeAndQueue in HeaderExchange with arguments {} : {}", key, value));
-            channel.queueDeclare(queueName, true, false, false, null);
+            channel.queueDeclare(queueName, true, false, false, this.argumentsDeadLetterQueue());
             channel.queueBind(queueName, exchangeHeader, "", arguments);
             Long end = System.currentTimeMillis();
             logger.info(" Process createExchangeAndQueue in HeaderExchange take {} milliSecond ", (end - start));
@@ -40,6 +49,13 @@ public class HeaderExchange implements BaseExchange {
                 channelPool.returnChannel(channel);
             }
         }
+    }
+
+    private Map<String, Object> argumentsDeadLetterQueue() {
+        Map<String, Object> argumentsDeadLetter = new HashMap<>();
+        argumentsDeadLetter.put(CommonConstant.X_DEAD_LETTER_EXCHANGE, deadLetterExchange);
+        argumentsDeadLetter.put(CommonConstant.X_DEAD_LETTER_ROUTING_KEY, deadLetterRoutingKey);
+        return argumentsDeadLetter;
     }
 
 }

@@ -1,14 +1,15 @@
 package vn.vnpay.demo.config.threadpool;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import vn.vnpay.demo.common.PropertiesFactory;
+import vn.vnpay.demo.exception.RejectedExecution;
+
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import vn.vnpay.demo.common.PropertiesFactory;
-import vn.vnpay.demo.exception.RejectedExecution;
 
 
 public class ThreadPoolConfig {

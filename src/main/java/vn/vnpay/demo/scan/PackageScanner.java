@@ -5,13 +5,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PackageScanner {
+    private PackageScanner() {
+    }
 
     public static List<Class<?>> getClasses(String packageName) throws ClassNotFoundException {
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         String path = packageName.replace('.', '/');
         List<Class<?>> classes = new ArrayList<>();
         File dir = new File(classLoader.getResource(path).getFile());
-
         for (File file : dir.listFiles()) {
             if (file.isDirectory()) {
                 classes.addAll(getClasses(packageName + "." + file.getName()));
@@ -20,7 +21,6 @@ public class PackageScanner {
                 classes.add(Class.forName(className));
             }
         }
-
         return classes;
     }
 }

@@ -1,19 +1,27 @@
 package vn.vnpay.demo.config.connection;
 
 import com.rabbitmq.client.Connection;
-import java.util.NoSuchElementException;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vn.vnpay.demo.exception.CommonException;
+
+import java.io.IOException;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 
 public class RabbitMqConnectionPool implements Cloneable {
+
+    int maxTotal;
+    int minIdle;
+    int maxIdle;
+    boolean blockWhenExhausted;
+    RabbitMqConnectionFactory rabbitMqConnectionFactory;
     private volatile static RabbitMqConnectionPool instance;
     private final Logger logger = LoggerFactory.getLogger(RabbitMqConnectionPool.class);
     private GenericObjectPool<Connection> internalPool;
 
-    public static RabbitMqConnectionPool getInstance(
+    public static void initConnectionPool(
             int maxTotal, int minIdle, int maxIdle, boolean blockWhenExhausted,
             RabbitMqConnectionFactory rabbitMqConnectionFactory) {
         if (instance == null) {
@@ -23,17 +31,21 @@ public class RabbitMqConnectionPool implements Cloneable {
                 }
             }
         }
+    }
+
+    public static RabbitMqConnectionPool getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException("RabbitMqConnectionPool not initialized. Call init() before getInstance()");
+        }
         return instance;
     }
 
-    public RabbitMqConnectionPool(int maxTotal, int minIdle, int maxIdle, boolean blockWhenExhausted,
-                                  RabbitMqConnectionFactory rabbitMqConnectionFactory) {
+    private void configPoolObject() {
         GenericObjectPoolConfig<Connection> defaultConfig = new GenericObjectPoolConfig<>();
         defaultConfig.setMaxTotal(maxTotal);
         defaultConfig.setMaxIdle(maxIdle);
         defaultConfig.setMinIdle(minIdle);
         defaultConfig.setBlockWhenExhausted(blockWhenExhausted);
-
         if (this.internalPool != null) {
             try {
                 closeInternalPool();
@@ -47,6 +59,15 @@ public class RabbitMqConnectionPool implements Cloneable {
         } catch (Exception e) {
             logger.error("Create InternalPool fail with root cause ", e);
         }
+    }
+
+    public RabbitMqConnectionPool(int maxTotal, int minIdle, int maxIdle, boolean blockWhenExhausted, RabbitMqConnectionFactory rabbitMqConnectionFactory) {
+        this.maxTotal = maxTotal;
+        this.minIdle = minIdle;
+        this.maxIdle = maxIdle;
+        this.blockWhenExhausted = blockWhenExhausted;
+        this.rabbitMqConnectionFactory = rabbitMqConnectionFactory;
+        this.configPoolObject();
     }
 
     private void closeInternalPool() {
@@ -70,16 +91,15 @@ public class RabbitMqConnectionPool implements Cloneable {
         }
     }
 
-    public Connection getConnection() {
+    public Connection getConnection() throws IOException, TimeoutException {
         try {
-            logger.info(" Quantity connection is not active in Connection pool: {}", internalPool.getNumIdle());
-            logger.info(" Quantity connection Active in Connection pool: {}", internalPool.getNumActive());
             return internalPool.borrowObject(5000);
         } catch (NoSuchElementException nse) {
-            logger.error("The exception was caused by an exhausted pool");
-            throw new CommonException("Could not get a resource from the Connection pool", nse);
+            logger.error("The exception was caused by an exhausted pool", nse);
+            return rabbitMqConnectionFactory.connectionFactory().newConnection();
         } catch (Exception e) {
-            throw new CommonException("Could not get a resource from the Connection pool", e);
+            logger.error("The exception was caused by an exhausted pool", e);
+            return rabbitMqConnectionFactory.connectionFactory().newConnection();
         }
     }
 

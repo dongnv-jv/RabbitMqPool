@@ -3,24 +3,22 @@ package vn.vnpay.demo.config.connection;
 import com.rabbitmq.client.BlockedListener;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.util.UUID;
-import java.util.concurrent.TimeoutException;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.UUID;
+import java.util.concurrent.TimeoutException;
+
 public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection> {
-    private String host;
-    private int port;
-    private String username;
-    private String password;
-    private String virtualHost;
+    private final String host;
+    private final int port;
+    private final String username;
+    private final String password;
+    private final String virtualHost;
     private volatile static RabbitMqConnectionFactory instance;
     private final Logger logger = LoggerFactory.getLogger(RabbitMqConnectionFactory.class);
 
@@ -30,10 +28,6 @@ public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection
         this.username = username;
         this.password = password;
         this.virtualHost = virtualHost;
-    }
-
-    public RabbitMqConnectionFactory() {
-
     }
 
     public ConnectionFactory connectionFactory() {
@@ -59,7 +53,7 @@ public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection
     }
 
     @Override
-    public PooledObject<Connection> makeObject() throws URISyntaxException, NoSuchAlgorithmException, KeyManagementException, IOException, TimeoutException {
+    public PooledObject<Connection> makeObject() throws IOException, TimeoutException {
 
         Connection connection = connectionFactory().newConnection();
         connection.addBlockedListener(new BlockedListener() {
