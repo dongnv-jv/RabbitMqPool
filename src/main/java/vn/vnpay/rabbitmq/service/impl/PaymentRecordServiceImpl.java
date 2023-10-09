@@ -60,6 +60,7 @@ public class PaymentRecordServiceImpl {
         }
         return paymentRecordOptional;
     }
+
     public void pushRedis(PaymentRequest paymentRequest) throws IOException {
         RedisConfig redisConfig = RedisConfig.getInstance();
         Jedis jedis = redisConfig.getJedisPool().getResource();

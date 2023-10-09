@@ -14,7 +14,7 @@ public class ConsumerHandle<T> extends DefaultConsumer {
 
     public ConsumerHandle(Channel channel) {
         super(channel);
-        this.channel= channel;
+        this.channel = channel;
     }
 
     public T getData() {

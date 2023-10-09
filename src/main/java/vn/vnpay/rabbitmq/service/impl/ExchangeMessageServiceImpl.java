@@ -24,6 +24,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 
 public class ExchangeMessageServiceImpl implements IExchangeMessageService {
@@ -41,7 +43,7 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
     @CustomValue("consumer.prefetchCount")
     private int prefetchCount;
     private volatile boolean hasFailedMessage = false;
-
+    PaymentRecordServiceImpl paymentRecordService = new PaymentRecordServiceImpl();
     private synchronized void handleSendFailedMessage(Channel channel) {
 
         if (!hasFailedMessage) {
@@ -106,7 +108,7 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
         ChannelPool channelPool = ChannelPool.getInstance();
 //        for (int i = 0; i < 10; i++) {
 //            executor.execute(() -> {
-               this.getMessageFromQueue(queueName, clazz, channelPool);
+        this.getMessageFromQueue(queueName, clazz, channelPool);
 //            });
 //        }
         long end = System.currentTimeMillis();
@@ -115,10 +117,15 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
 
     private <T> void getMessageFromQueue(String queueName, Class<T> clazz, ChannelPool channelPool) {
         Channel channel = null;
+        Executor executor = ThreadPoolConfig.getExecutor();
+        CompletableFuture<PaymentRequest> paymentRequestFuture = CompletableFuture.completedFuture(new PaymentRequest());
         try {
             channel = channelPool.getChannel();
             channel.basicQos(prefetchCount); // Giới hạn số tin nhắn gửi đến consumer chưa được xác nhận
             this.getMessageFromQueue(channel, queueName, clazz);
+
+
+
         } catch (Exception e) {
             logger.error(" Receiver message from queue {} failed with root cause ", queueName, e);
         } finally {
@@ -129,22 +136,20 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
     }
 
     private <T> void getMessageFromQueue(Channel channel, String queueName, Class<T> clazz) throws IOException {
-
+        CompletableFuture<PaymentRequest> future = new CompletableFuture<>();
         Consumer consumer = new DefaultConsumer(channel) {
             @Override
             public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
 
                 try {
-                    PaymentRequest paymentRequest = (PaymentRequest) ObjectConverter.bytesToObject(body, clazz);
-                    // Process message
+                    future.complete((PaymentRequest) ObjectConverter.bytesToObject(body, clazz));
+                    PaymentRequest paymentRequest = future.get();
                     PaymentRecord paymentRecord = convertRequest(paymentRequest);
-                    PaymentRecordServiceImpl paymentRecordService = new PaymentRecordServiceImpl();
                     paymentRecordService.pushRedis(paymentRequest);
                     paymentRecordService.save(paymentRecord);
-
+                    logger.info("Received payment request "+paymentRecord.getCustomerName());
                     channel.basicAck(envelope.getDeliveryTag(), false);
                 } catch (Exception e) {
-
                     logger.error(" Receiver message  from queue {} failed with root cause ", queueName, e);
                     channel.basicReject(envelope.getDeliveryTag(), false);
                 }
@@ -166,5 +171,6 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
         paymentRecord.setLocalDate(LocalDateTime.now());
         return paymentRecord;
     }
+
 
 }

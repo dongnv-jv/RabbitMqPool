@@ -56,6 +56,7 @@ public class PaymentRequest {
     public void setToken(String token) {
         this.token = token;
     }
+
     public String getUserName() {
         return userName;
     }
