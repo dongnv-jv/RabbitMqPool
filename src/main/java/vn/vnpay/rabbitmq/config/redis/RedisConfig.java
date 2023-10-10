@@ -1,5 +1,6 @@
 package vn.vnpay.rabbitmq.config.redis;
 
+import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
@@ -29,6 +30,10 @@ public class RedisConfig {
                 }
             }
         }
+    }
+
+    public void returnConnection(Jedis jedis) {
+        jedisPool.returnResource(jedis);
     }
 
     public static RedisConfig getInstance() {

@@ -61,9 +61,25 @@ public class PaymentRecordServiceImpl {
         return paymentRecordOptional;
     }
 
-    public void pushRedis(PaymentRequest paymentRequest) throws IOException {
+    public void pushRedis(PaymentRequest paymentRequest) {
+
         RedisConfig redisConfig = RedisConfig.getInstance();
-        Jedis jedis = redisConfig.getJedisPool().getResource();
-        jedis.setex(paymentRequest.getToken(), 120, ObjectConverter.objectToJson(paymentRequest));
+        Jedis jedis = null;
+        try {
+            jedis = redisConfig.getJedisPool().getResource();
+            if (!jedis.isConnected() || !jedis.ping().equals("PONG")) {
+                jedis.close();
+                jedis = redisConfig.getJedisPool().getResource();
+            }
+            jedis.setex(paymentRequest.getToken(), 120L, ObjectConverter.objectToJson(paymentRequest));
+        } catch (Exception e) {
+            logger.error("Error push message to redis", e);
+        } finally {
+            if (jedis != null) {
+                redisConfig.returnConnection(jedis);
+            }
+
+        }
+
     }
 }

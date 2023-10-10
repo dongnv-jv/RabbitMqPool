@@ -34,22 +34,22 @@ public class PoolTest {
         appConfig.configure();
 
         // Inject values to Exchange
-        BaseExchange exchange = new FanoutExchange();
-        ValueInjector.injectValues(exchange);
-        exchange.createExchangeAndQueue();
+//        BaseExchange exchange = new FanoutExchange();
+//        ValueInjector.injectValues(exchange);
+//        exchange.createExchangeAndQueue();
 
         // Inject values to ExchangeMessageService
-        IExchangeMessageService IExchangeMessageService = new ExchangeMessageServiceImpl();
-        ValueInjector.injectValues(IExchangeMessageService);
+        IExchangeMessageService iExchangeMessageService = new ExchangeMessageServiceImpl();
+        ValueInjector.injectValues(iExchangeMessageService);
 
 //        List<Student> studentList = Arrays.asList(new Student(1, "Nguyen Van A", 24), new Student(2, "Nguyen Van B", 25), new Student(3, "Nguyen Van C", 26));
         Map<String, Object> mapPropsForHeaders = new HashMap<>();
 //        IExchangeMessageService.sendMessage(" ", "", exchangeName, mapPropsForHeaders);
 
         // Receiver message from queue
-        IExchangeMessageService.getMessageFromQueue(queueName, PaymentRequest.class);
+//        IExchangeMessageService.getMessageFromQueue(queueName, PaymentRequest.class);
 
-
+        iExchangeMessageService.processRPCServer();
     }
 }
 

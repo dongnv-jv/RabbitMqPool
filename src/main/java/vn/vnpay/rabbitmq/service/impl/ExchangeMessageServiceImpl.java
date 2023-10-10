@@ -17,6 +17,7 @@ import vn.vnpay.rabbitmq.config.channel.ChannelPool;
 import vn.vnpay.rabbitmq.config.threadpool.ThreadPoolConfig;
 import vn.vnpay.rabbitmq.bean.Student;
 import vn.vnpay.rabbitmq.factory.PaymentRequest;
+import vn.vnpay.rabbitmq.factory.Response;
 import vn.vnpay.rabbitmq.service.IExchangeMessageService;
 
 import java.io.IOException;
@@ -42,8 +43,13 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
     private String deadLetterQueueName;
     @CustomValue("consumer.prefetchCount")
     private int prefetchCount;
+    @CustomValue("exchange.rpc.queueName")
+    private static String rpcQueueName;
+    @CustomValue("exchange.rpc.replyQueueName")
+    private static String replyQueueName;
     private volatile boolean hasFailedMessage = false;
     PaymentRecordServiceImpl paymentRecordService = new PaymentRecordServiceImpl();
+
     private synchronized void handleSendFailedMessage(Channel channel) {
 
         if (!hasFailedMessage) {
@@ -125,7 +131,6 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
             this.getMessageFromQueue(channel, queueName, clazz);
 
 
-
         } catch (Exception e) {
             logger.error(" Receiver message from queue {} failed with root cause ", queueName, e);
         } finally {
@@ -143,11 +148,12 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
 
                 try {
                     future.complete((PaymentRequest) ObjectConverter.bytesToObject(body, clazz));
-                    PaymentRequest paymentRequest = future.get();
-                    PaymentRecord paymentRecord = convertRequest(paymentRequest);
-                    paymentRecordService.pushRedis(paymentRequest);
-                    paymentRecordService.save(paymentRecord);
-                    logger.info("Received payment request "+paymentRecord.getCustomerName());
+//                    PaymentRequest paymentRequest = future.get();
+//                    PaymentRecord paymentRecord = convertRequest(paymentRequest);
+//                    paymentRecordService.pushRedis(paymentRequest);
+//                    paymentRecordService.save(paymentRecord);
+//                    processPayment(future);
+//                    logger.info("Received payment request " + paymentRecord.getCustomerName());
                     channel.basicAck(envelope.getDeliveryTag(), false);
                 } catch (Exception e) {
                     logger.error(" Receiver message  from queue {} failed with root cause ", queueName, e);
@@ -172,5 +178,54 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
         return paymentRecord;
     }
 
+    private boolean processPayment(PaymentRequest paymentRequest) {
+        try {
+            PaymentRecord paymentRecord = convertRequest(paymentRequest);
+            paymentRecordService.pushRedis(paymentRequest);
+            paymentRecordService.save(paymentRecord);
+            logger.info("PaymentRecord is processed successfully !");
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    public void processRPCServer() {
+        ChannelPool channelPool = ChannelPool.getInstance();
+        Channel channel = null;
+        try {
+            channel = channelPool.getChannel();
+            channel.queueDeclare(rpcQueueName, false, false, false, null);
+            Channel finalChannel = channel;
+            DeliverCallback deliverCallback = (consumerTag, delivery) -> {
+                AMQP.BasicProperties replyProps = new AMQP.BasicProperties
+                        .Builder()
+                        .correlationId(delivery.getProperties().getCorrelationId())
+                        .build();
+                PaymentRequest paymentRequest = ObjectConverter.bytesToObject(delivery.getBody(), PaymentRequest.class);
+                boolean checkResponse = processPayment(paymentRequest);
+                Response<String> response = new Response<>();
+                if (checkResponse) {
+                    response.setCode("00");
+                    response.setMessage("Success");
+                    response.setData(paymentRequest.getToken());
+                } else {
+                    response.setCode("01");
+                    response.setMessage("Fail");
+                    response.setData(paymentRequest.getToken());
+                }
+                finalChannel.basicPublish("", delivery.getProperties().getReplyTo(), replyProps, ObjectConverter.objectToBytes(response));
+                finalChannel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
+            };
+            channel.basicConsume(rpcQueueName, false, deliverCallback, consumerTag -> {
+            });
+        } catch (Exception e) {
+            logger.error(" Receiver message  from queue {} failed with root cause ", rpcQueueName, e);
+        }finally {
+            if (channel != null) {
+                channelPool.returnChannel(channel);
+            }
+        }
+    }
 
 }
