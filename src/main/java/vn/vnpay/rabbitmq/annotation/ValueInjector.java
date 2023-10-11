@@ -13,6 +13,30 @@ public class ValueInjector {
     private ValueInjector() {
     }
 
+    public static void injectValues(Object target, Map<String, Object> configValues) throws IllegalAccessException {
+        Field[] fields = target.getClass().getDeclaredFields();
+        for (Field field : fields) {
+            if (field.isAnnotationPresent(CustomValue.class)) {
+                CustomValue customValue = field.getAnnotation(CustomValue.class);
+                String key = customValue.value();
+                field.setAccessible(true);
+                String value = null;
+                if (configValues.containsKey(key)) {
+                    value = (String) configValues.get(key);
+                }
+                if (value.matches("\\d+")) {
+                    int number = Integer.parseInt(value);
+                    field.set(target, number);
+                } else if (value.matches("^(true|false)$")) {
+                    boolean input = Boolean.parseBoolean(value);
+                    field.set(target, input);
+                } else {
+                    field.set(target, value);
+                }
+            }
+        }
+    }
+
     public static void injectValues(Object target) throws IllegalAccessException {
         Field[] fields = target.getClass().getDeclaredFields();
         for (Field field : fields) {
@@ -53,4 +77,5 @@ public class ValueInjector {
             }
         }
     }
+
 }

@@ -55,17 +55,18 @@ public class CommonConfig {
     @CustomValue("connection.pool.redis.minIdle")
     private int redisMaxIdleConnPool;
 
-    public void configure() {
+    public boolean configure() {
         try {
             RedisConfig.initRedisConfig(redisHost, redisPort, redisUsername, redisPassword, redisMaxTotalConnPool, redisMinIdleConnPool, redisMaxIdleConnPool);
-
             RabbitMqConnectionFactory connectionFactoryFactory = RabbitMqConnectionFactory.getInstance(host, port, username, password, virtualHost);
             RabbitMqConnectionPool.initConnectionPool(maxTotalConnPool, minIdleConnPool, maxIdleConnPool, blockWhenExhaustedConnPool, connectionFactoryFactory);
             RabbitMqConnectionPool rabbitMqConnectionPool = RabbitMqConnectionPool.getInstance();
             ChannelFactory channelFactory = ChannelFactory.getInstance(rabbitMqConnectionPool);
             ChannelPool.initChannelPool(maxTotalChannelPool, minIdleChannelPool, maxIdleChannelPool, blockWhenExhaustedChannelPool, channelFactory);
+            return true;
         } catch (Exception e) {
-            logger.error("Failed to configure RabbitMQ ", e);
+            logger.error("Failed to configure ", e);
+            return false;
         }
 
     }

@@ -54,7 +54,6 @@ public class ChannelPool implements Cloneable {
         } catch (Exception e) {
             logger.error("Create InternalPool fail with root cause ", e);
         }
-        logger.info("Create InternalPool with {} Channel in Pool", internalPool.getNumIdle()); //todo
     }
 
     private void closeInternalPool() {

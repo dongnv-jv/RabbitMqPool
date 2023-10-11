@@ -8,5 +8,5 @@ public interface IExchangeMessageService {
 
     <T> void getMessageFromQueue(String queueName, Class<T> clazz);
 
-     void processRPCServer();
+    void processRPCServer();
 }

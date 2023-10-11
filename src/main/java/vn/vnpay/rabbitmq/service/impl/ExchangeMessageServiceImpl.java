@@ -7,28 +7,28 @@ import com.rabbitmq.client.Consumer;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.DeliverCallback;
 import com.rabbitmq.client.Envelope;
-import com.rabbitmq.client.RpcServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import vn.vnpay.rabbitmq.annotation.Autowire;
+import vn.vnpay.rabbitmq.annotation.Component;
 import vn.vnpay.rabbitmq.annotation.CustomValue;
 import vn.vnpay.rabbitmq.bean.PaymentRecord;
 import vn.vnpay.rabbitmq.common.ObjectConverter;
 import vn.vnpay.rabbitmq.config.channel.ChannelPool;
 import vn.vnpay.rabbitmq.config.threadpool.ThreadPoolConfig;
-import vn.vnpay.rabbitmq.bean.Student;
 import vn.vnpay.rabbitmq.factory.PaymentRequest;
 import vn.vnpay.rabbitmq.factory.Response;
+import vn.vnpay.rabbitmq.factory.ResponsePayment;
 import vn.vnpay.rabbitmq.service.IExchangeMessageService;
+import vn.vnpay.rabbitmq.service.IPaymentRecordService;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 
+@Component
 public class ExchangeMessageServiceImpl implements IExchangeMessageService {
     private final Logger logger = LoggerFactory.getLogger(ExchangeMessageServiceImpl.class);
     @CustomValue("charset.Name")
@@ -47,8 +47,11 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
     private static String rpcQueueName;
     @CustomValue("exchange.rpc.replyQueueName")
     private static String replyQueueName;
+    @CustomValue("server.time.sleep")
+    private int sleepingTime;
     private volatile boolean hasFailedMessage = false;
-    PaymentRecordServiceImpl paymentRecordService = new PaymentRecordServiceImpl();
+    @Autowire
+   private IPaymentRecordService iPaymentRecordService;
 
     private synchronized void handleSendFailedMessage(Channel channel) {
 
@@ -178,14 +181,21 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
         return paymentRecord;
     }
 
-    private boolean processPayment(PaymentRequest paymentRequest) {
+    private boolean processPayment(PaymentRequest paymentRequest, ResponsePayment responsePayment) {
         try {
             PaymentRecord paymentRecord = convertRequest(paymentRequest);
-            paymentRecordService.pushRedis(paymentRequest);
-            paymentRecordService.save(paymentRecord);
-            logger.info("PaymentRecord is processed successfully !");
-            return true;
+            boolean isPushRedis = iPaymentRecordService.pushRedis(paymentRequest);
+            if (isPushRedis) {
+                logger.info("Push message to Redis successfully !");
+            }
+            Thread.sleep(sleepingTime);
+            paymentRecord = iPaymentRecordService.savePaymentRecord(paymentRecord);
+            if (paymentRecord.getId() != null) {
+                responsePayment.setId(paymentRecord.getId());
+            }
+            return isPushRedis && paymentRecord.getId() != null;
         } catch (Exception e) {
+            logger.error("Exception while processing payment request", e);
             return false;
         }
     }
@@ -193,6 +203,10 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
     public void processRPCServer() {
         ChannelPool channelPool = ChannelPool.getInstance();
         Channel channel = null;
+        Response<ResponsePayment> response = new Response<>();
+
+        long start = System.currentTimeMillis();
+        logger.info("Start processRPCServer in ExchangeMessageServiceImpl ");
         try {
             channel = channelPool.getChannel();
             channel.queueDeclare(rpcQueueName, false, false, false, null);
@@ -203,25 +217,30 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
                         .correlationId(delivery.getProperties().getCorrelationId())
                         .build();
                 PaymentRequest paymentRequest = ObjectConverter.bytesToObject(delivery.getBody(), PaymentRequest.class);
-                boolean checkResponse = processPayment(paymentRequest);
-                Response<String> response = new Response<>();
-                if (checkResponse) {
+                ResponsePayment responsePayment = new ResponsePayment();
+                boolean isProcessPaymentSuccessfully = processPayment(paymentRequest, responsePayment);
+                responsePayment.setToken(paymentRequest.getToken());
+                if (isProcessPaymentSuccessfully) {
                     response.setCode("00");
                     response.setMessage("Success");
-                    response.setData(paymentRequest.getToken());
+                    response.setData(responsePayment);
+                    logger.info("processPayment successfully !");
                 } else {
                     response.setCode("01");
                     response.setMessage("Fail");
-                    response.setData(paymentRequest.getToken());
+                    response.setData(responsePayment);
+                    logger.info("processPayment failed !");
                 }
                 finalChannel.basicPublish("", delivery.getProperties().getReplyTo(), replyProps, ObjectConverter.objectToBytes(response));
                 finalChannel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
             };
             channel.basicConsume(rpcQueueName, false, deliverCallback, consumerTag -> {
             });
+            long end = System.currentTimeMillis();
+            logger.info("Process processRPCServer in ExchangeMessageServiceImpl take {} millisecond", (end - start));
         } catch (Exception e) {
             logger.error(" Receiver message  from queue {} failed with root cause ", rpcQueueName, e);
-        }finally {
+        } finally {
             if (channel != null) {
                 channelPool.returnChannel(channel);
             }

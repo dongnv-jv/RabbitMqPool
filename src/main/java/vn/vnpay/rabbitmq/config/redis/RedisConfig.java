@@ -6,7 +6,7 @@ import redis.clients.jedis.JedisPoolConfig;
 
 public class RedisConfig {
 
-    private JedisPool jedisPool;
+    private final JedisPool jedisPool;
     private volatile static RedisConfig instance;
 
     public RedisConfig(String host, int port, String username, String password, int maxTotal, int minIdle, int maxIdle) {
@@ -33,7 +33,7 @@ public class RedisConfig {
     }
 
     public void returnConnection(Jedis jedis) {
-        jedisPool.returnResource(jedis);
+        jedis.close();
     }
 
     public static RedisConfig getInstance() {

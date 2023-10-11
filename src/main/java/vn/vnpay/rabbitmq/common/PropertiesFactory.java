@@ -41,6 +41,6 @@ public class PropertiesFactory {
         } catch (IOException e) {
             logger.error(" Get properties from resource failed with root cause : ", e);
         }
-        return keyValueMap; // TODO có thể return khi không đoc đc
+        return keyValueMap;
     }
 }
