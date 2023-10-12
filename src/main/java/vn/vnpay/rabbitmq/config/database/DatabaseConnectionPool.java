@@ -5,41 +5,48 @@ import org.hibernate.boot.Metadata;
 import org.hibernate.boot.MetadataSources;
 import org.hibernate.boot.registry.StandardServiceRegistry;
 import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
-import org.hibernate.cfg.Environment;
+import org.hibernate.cfg.AvailableSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.vnpay.rabbitmq.bean.PaymentRecord;
 
 import java.util.HashMap;
 import java.util.Map;
-
 public class DatabaseConnectionPool {
-    Logger logger = LoggerFactory.getLogger(DatabaseConnectionPool.class);
+    private Logger logger = LoggerFactory.getLogger(DatabaseConnectionPool.class);
 
     private StandardServiceRegistry registry;
     private SessionFactory sessionFactory;
-
-    private static DatabaseConnectionPool dbUtil;
+    private volatile static DatabaseConnectionPool databaseConnectionPool;
 
     public static DatabaseConnectionPool getInstance() {
-        if (dbUtil == null) {
-            dbUtil = new DatabaseConnectionPool();
+        if (databaseConnectionPool == null) {
+            throw new IllegalStateException("DatabaseConnectionPool not initialized. Call init() before getInstance()");
         }
-        return dbUtil;
+        return databaseConnectionPool;
     }
 
+    public static void initDatabaseConnectionPool(String driver, String url, String username, String password, String ddlAuto, boolean showSql) {
+        if (databaseConnectionPool == null) {
+            synchronized (DatabaseConnectionPool.class) {
+                if (databaseConnectionPool == null) {
+                    databaseConnectionPool = new DatabaseConnectionPool(driver, url, username, password, ddlAuto, showSql);
+                }
+            }
+        }
+    }
 
-    public SessionFactory getSessionFactory() {
+    public DatabaseConnectionPool(String driver, String url, String username, String password, String ddlAuto, boolean showSql) {
         if (sessionFactory == null) {
             try {
                 StandardServiceRegistryBuilder registryBuilder = new StandardServiceRegistryBuilder();
                 Map<String, Object> settings = new HashMap<>();
-                settings.put(Environment.DRIVER, "org.postgresql.Driver");
-                settings.put(Environment.URL, "jdbc:postgresql://localhost:5432/testdb");
-                settings.put(Environment.USER, "postgres");
-                settings.put(Environment.PASS, "123456");
-                settings.put(Environment.HBM2DDL_AUTO, "update");
-                settings.put(Environment.SHOW_SQL, true);
+                settings.put(AvailableSettings.DRIVER, driver);
+                settings.put(AvailableSettings.URL, url);
+                settings.put(AvailableSettings.USER, username);
+                settings.put(AvailableSettings.PASS, password);
+                settings.put(AvailableSettings.HBM2DDL_AUTO, ddlAuto);
+                settings.put(AvailableSettings.SHOW_SQL, showSql);
 
                 settings.put("hibernate.hikari.connectionTimeout", "20000");
                 settings.put("hibernate.hikari.minimumIdle", "10");
@@ -62,6 +69,9 @@ public class DatabaseConnectionPool {
             }
 
         }
+    }
+
+    public SessionFactory getSessionFactory() {
         return sessionFactory;
     }
 

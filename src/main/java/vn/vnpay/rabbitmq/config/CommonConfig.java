@@ -8,7 +8,10 @@ import vn.vnpay.rabbitmq.config.channel.ChannelFactory;
 import vn.vnpay.rabbitmq.config.channel.ChannelPool;
 import vn.vnpay.rabbitmq.config.connection.RabbitMqConnectionFactory;
 import vn.vnpay.rabbitmq.config.connection.RabbitMqConnectionPool;
+import vn.vnpay.rabbitmq.config.database.DatabaseConnectionPool;
 import vn.vnpay.rabbitmq.config.redis.RedisConfig;
+
+import java.util.Map;
 
 @Component
 public class CommonConfig {
@@ -55,23 +58,37 @@ public class CommonConfig {
     @CustomValue("connection.pool.redis.minIdle")
     private int redisMaxIdleConnPool;
 
-    public boolean configure() {
+    @CustomValue("database.driver")
+    private String databaseDriver;
+    @CustomValue("database.url")
+    private String databaseUrl;
+    @CustomValue("database.user")
+    private String databaseUsername;
+    @CustomValue("database.password")
+    private String databasePassword;
+    @CustomValue("database.hibernate.dll-auto")
+    private String ddlAuto;
+    @CustomValue("database.hibernate.show-sql")
+    private boolean isShowSql;
+
+    public void configure(Map<Class<?>, Object> beans) {
         try {
+            DatabaseConnectionPool.initDatabaseConnectionPool(databaseDriver, databaseUrl, databaseUsername, databasePassword, ddlAuto, isShowSql);
             RedisConfig.initRedisConfig(redisHost, redisPort, redisUsername, redisPassword, redisMaxTotalConnPool, redisMinIdleConnPool, redisMaxIdleConnPool);
             RabbitMqConnectionFactory connectionFactoryFactory = RabbitMqConnectionFactory.getInstance(host, port, username, password, virtualHost);
             RabbitMqConnectionPool.initConnectionPool(maxTotalConnPool, minIdleConnPool, maxIdleConnPool, blockWhenExhaustedConnPool, connectionFactoryFactory);
             RabbitMqConnectionPool rabbitMqConnectionPool = RabbitMqConnectionPool.getInstance();
             ChannelFactory channelFactory = ChannelFactory.getInstance(rabbitMqConnectionPool);
             ChannelPool.initChannelPool(maxTotalChannelPool, minIdleChannelPool, maxIdleChannelPool, blockWhenExhaustedChannelPool, channelFactory);
-            return true;
+            beans.put(DatabaseConnectionPool.class, DatabaseConnectionPool.getInstance());
+            beans.put(RedisConfig.class, RedisConfig.getInstance());
+            beans.put(RabbitMqConnectionPool.class, RabbitMqConnectionPool.getInstance());
+            beans.put(ChannelFactory.class, channelFactory);
+            beans.put(ChannelPool.class, ChannelPool.getInstance());
         } catch (Exception e) {
             logger.error("Failed to configure ", e);
-            return false;
         }
 
     }
 
 }
-// cấu hình config động
-// Hàm config không trả về void => có thể không câ hình được nhưng code vẫn chạy
-//

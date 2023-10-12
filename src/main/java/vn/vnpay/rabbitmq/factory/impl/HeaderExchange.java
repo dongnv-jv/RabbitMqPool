@@ -4,6 +4,8 @@ import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import vn.vnpay.rabbitmq.annotation.Autowire;
+import vn.vnpay.rabbitmq.annotation.Component;
 import vn.vnpay.rabbitmq.annotation.CustomValue;
 import vn.vnpay.rabbitmq.annotation.ValueKeyMap;
 import vn.vnpay.rabbitmq.common.CommonConstant;
@@ -13,6 +15,7 @@ import vn.vnpay.rabbitmq.factory.BaseExchange;
 import java.util.HashMap;
 import java.util.Map;
 
+@Component
 public class HeaderExchange implements BaseExchange {
     Logger logger = LoggerFactory.getLogger(HeaderExchange.class);
     @ValueKeyMap("exchange.header.arguments.")
@@ -27,11 +30,11 @@ public class HeaderExchange implements BaseExchange {
     private String deadLetterExchange;
     @CustomValue("exchange.dead.letter.routingKey")
     private String deadLetterRoutingKey;
-
+    @Autowire
+    private ChannelPool channelPool;
     public void createExchangeAndQueue() {
         Long start = System.currentTimeMillis();
         logger.info("Start createExchangeAndQueue in HeaderExchange");
-        ChannelPool channelPool = ChannelPool.getInstance();
         Channel channel = null;
         try {
             channel = channelPool.getChannel();

@@ -5,30 +5,21 @@ import org.slf4j.LoggerFactory;
 import vn.vnpay.rabbitmq.annotation.Autowire;
 import vn.vnpay.rabbitmq.annotation.Component;
 import vn.vnpay.rabbitmq.annotation.ValueInjector;
+import vn.vnpay.rabbitmq.config.CommonConfig;
 
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.TimerTask;
 
 public class ApplicationContext {
     private static final Logger logger = LoggerFactory.getLogger(ApplicationContext.class);
-
-    private Map<Class<?>, Object> beans = new HashMap<>();
-    private Map<String, Object> configValues = new HashMap<>();
+    private final Map<Class<?>, Object> beans = new HashMap<>();
+    private final Map<String, Object> configValues = new HashMap<>();
 
     public ApplicationContext(String basePackage) throws Exception {
         loadConfigValues();
@@ -38,9 +29,16 @@ public class ApplicationContext {
                 Constructor<?> constructor = clazz.getConstructor();
                 Object instance = constructor.newInstance();
                 ValueInjector.injectValues(instance, configValues);
+                ValueInjector.injectValues(instance);
                 beans.put(clazz, instance);
             }
         }
+        CommonConfig commonConfig = getBean(CommonConfig.class);
+        commonConfig.configure(beans);
+        this.injectAutowire(classes, basePackage);
+    }
+
+    private void injectAutowire(List<Class<?>> classes, String basePackage) throws ClassNotFoundException {
         for (Class<?> clazz : classes) {
             Field[] fields = clazz.getDeclaredFields();
             Object clazzInject = getBean(clazz);
@@ -48,37 +46,37 @@ public class ApplicationContext {
                 if (field.isAnnotationPresent(Autowire.class)) {
                     if (field.getType().isInterface()) {
                         List<Class<?>> classList = getClassesImplementingInterface(field.getType(), basePackage);
-                        if (classList.size() == 1) {
+                        classList.stream().findFirst().ifPresent(t -> {
                             Object bean = getBean(classList.get(0));
-                            if (bean != null) {
-                                field.setAccessible(true);
-                                try {
-                                    field.set(clazzInject, bean);
-                                    beans.replace(clazz, clazzInject);
-                                } catch (IllegalAccessException e) {
-                                    logger.error("Could not set bean {} to class {}", bean, clazz, e);
-                                }
-                            }
-                        }
+                            this.injectBeans(field, clazzInject, clazz, bean);
+                        });
                     } else {
                         Object bean = getBean(field.getType());
-                        if (bean != null) {
-                            field.setAccessible(true);
-                            try {
-                                field.set(clazzInject, bean);
-                                beans.replace(clazz, clazzInject);
-                            } catch (IllegalAccessException e) {
-                                logger.error("Could not set bean {} to class {}", bean, clazz, e);
-                            }
-                        }
+                        this.injectBeans(field, clazzInject, clazz, bean);
                     }
                 }
             }
         }
     }
 
+    private void injectBeans(Field field, Object clazzInject, Class<?> clazz, Object bean) {
+        if (bean != null) {
+            field.setAccessible(true);
+            try {
+                field.set(clazzInject, bean);
+                beans.replace(clazz, clazzInject);
+            } catch (IllegalAccessException e) {
+                logger.error("Could not set bean {} to class {}", bean, clazz, e);
+            }
+        }
+    }
+
     public <T> T getBean(Class<T> clazz) {
         return clazz.cast(beans.get(clazz));
+    }
+
+    public void setBean(Class<?> clazz, Object bean) {
+        this.beans.put(clazz, bean);
     }
 
     public void loadConfigValues() {
@@ -89,50 +87,8 @@ public class ApplicationContext {
                 String value = properties.getProperty(key);
                 configValues.put(key, value);
             }
-        } catch (Throwable e) {
+        } catch (Exception e) {
             logger.error(" Get properties from resource failed with root cause : ", e);
-        }
-    }
-
-
-    private class ReloadTask extends TimerTask {
-        @Override
-        public void run() {
-            loadConfigValues();
-        }
-    }
-
-    private void startFileWatcher() {
-        try {
-            WatchService watchService = FileSystems.getDefault().newWatchService();
-            Path path = Paths.get(System.getProperty("user.home"));
-            path.register(watchService, StandardWatchEventKinds.ENTRY_MODIFY);
-            boolean isWatchServiceSupported = FileSystems.getDefault().supportedFileAttributeViews().contains("watchService");
-            if (isWatchServiceSupported) {
-
-                while (true) {
-                    WatchKey key;
-                    try {
-                        key = watchService.take();
-                    } catch (InterruptedException e) {
-                        return;
-                    }
-
-                    for (WatchEvent<?> event : key.pollEvents()) {
-                        if (event.kind() == StandardWatchEventKinds.ENTRY_MODIFY) {
-                            Path changedFile = (Path) event.context();
-                            if ("src/main/resources/config.properties".equals(changedFile.toString())) {
-                                configValues.clear();
-                                loadConfigValues();
-                                logger.info("File config.properties đã thay đổi.");
-                            }
-                        }
-                    }
-                    key.reset();
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 

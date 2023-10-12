@@ -51,7 +51,9 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
     private int sleepingTime;
     private volatile boolean hasFailedMessage = false;
     @Autowire
-   private IPaymentRecordService iPaymentRecordService;
+    private IPaymentRecordService iPaymentRecordService;
+    @Autowire
+    private  ChannelPool channelPool;
 
     private synchronized void handleSendFailedMessage(Channel channel) {
 
@@ -201,7 +203,6 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
     }
 
     public void processRPCServer() {
-        ChannelPool channelPool = ChannelPool.getInstance();
         Channel channel = null;
         Response<ResponsePayment> response = new Response<>();
 

@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.exceptions.JedisConnectionException;
+import vn.vnpay.rabbitmq.annotation.Autowire;
 import vn.vnpay.rabbitmq.annotation.Component;
 import vn.vnpay.rabbitmq.bean.PaymentRecord;
 import vn.vnpay.rabbitmq.common.ObjectConverter;
@@ -21,13 +22,15 @@ import java.util.Optional;
 @Component
 public class PaymentRecordServiceImpl implements IPaymentRecordService {
 
-    Logger logger = LoggerFactory.getLogger(PaymentRecordServiceImpl.class);
+    private final Logger logger = LoggerFactory.getLogger(PaymentRecordServiceImpl.class);
+    @Autowire
+    private DatabaseConnectionPool connectionPool;
+    @Autowire
+    private RedisConfig redisConfig;
 
     public PaymentRecord savePaymentRecord(PaymentRecord paymentRecord) {
-        DatabaseConnectionPool connectionPool = DatabaseConnectionPool.getInstance();
         SessionFactory sessionFactory = connectionPool.getSessionFactory();
         Transaction transaction = null;
-
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
             session.save(paymentRecord);
@@ -44,7 +47,6 @@ public class PaymentRecordServiceImpl implements IPaymentRecordService {
     }
 
     public Optional<PaymentRecord> getById(int id) {
-        DatabaseConnectionPool connectionPool = DatabaseConnectionPool.getInstance();
         SessionFactory sessionFactory = connectionPool.getSessionFactory();
         Optional<PaymentRecord> paymentRecordOptional = Optional.empty();
         try (Session session = sessionFactory.openSession()) {
@@ -57,7 +59,6 @@ public class PaymentRecordServiceImpl implements IPaymentRecordService {
     }
 
     public boolean pushRedis(PaymentRequest paymentRequest) {
-        RedisConfig redisConfig = RedisConfig.getInstance();
         Jedis jedis = null;
         try {
             jedis = redisConfig.getJedisPool().getResource();

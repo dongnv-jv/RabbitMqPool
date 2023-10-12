@@ -38,7 +38,6 @@ public class ChannelFactory implements PooledObjectFactory<Channel> {
     @Override
     public PooledObject<Channel> makeObject() throws Exception {
         Channel channel = connection.createChannel();
-        logger.info(" Object Channel {} is creating ", channel.getChannelNumber());
         return new DefaultPooledObject<>(channel);
     }
 
@@ -62,11 +61,9 @@ public class ChannelFactory implements PooledObjectFactory<Channel> {
 
     @Override
     public void activateObject(PooledObject<Channel> pooledObject) {
-        logger.info(" Object Channel {} is calling ", pooledObject.getObject().getChannelNumber());
     }
 
     @Override
     public void passivateObject(PooledObject<Channel> pooledObject) {
-        logger.info(" Object Channel {} is returning ", pooledObject.getObject().getChannelNumber());
     }
 }

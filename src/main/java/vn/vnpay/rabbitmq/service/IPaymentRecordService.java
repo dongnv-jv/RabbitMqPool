@@ -8,6 +8,8 @@ import java.util.Optional;
 public interface IPaymentRecordService {
 
     PaymentRecord savePaymentRecord(PaymentRecord paymentRecord);
+
     boolean pushRedis(PaymentRequest paymentRequest);
+
     Optional<PaymentRecord> getById(int id);
 }

@@ -4,12 +4,15 @@ import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import vn.vnpay.rabbitmq.annotation.Autowire;
+import vn.vnpay.rabbitmq.annotation.Component;
 import vn.vnpay.rabbitmq.annotation.CustomValue;
 import vn.vnpay.rabbitmq.config.channel.ChannelPool;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@Component
 public class DeadLetterExchange {
     Logger logger = LoggerFactory.getLogger(DeadLetterExchange.class);
 
@@ -19,12 +22,12 @@ public class DeadLetterExchange {
     private String deadLetterRoutingKey;
     @CustomValue("exchange.dead.letter.queueName")
     private String deadLetterQueueName;
-
+    @Autowire
+    private ChannelPool channelPool;
 
     public void createExchangeAndQueue() {
         Long start = System.currentTimeMillis();
         logger.info("Start createExchangeAndQueue in DeadLetterExchange");
-        ChannelPool channelPool = ChannelPool.getInstance();
         Channel channel = null;
         try {
             channel = channelPool.getChannel();

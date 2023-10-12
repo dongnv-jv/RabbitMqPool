@@ -4,6 +4,8 @@ import com.rabbitmq.client.BuiltinExchangeType;
 import com.rabbitmq.client.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import vn.vnpay.rabbitmq.annotation.Autowire;
+import vn.vnpay.rabbitmq.annotation.Component;
 import vn.vnpay.rabbitmq.annotation.CustomValue;
 import vn.vnpay.rabbitmq.annotation.ValueKeyMap;
 import vn.vnpay.rabbitmq.common.CommonConstant;
@@ -13,7 +15,7 @@ import vn.vnpay.rabbitmq.factory.BaseExchange;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
+@Component
 public class FanoutExchange implements BaseExchange {
 
     Logger logger = LoggerFactory.getLogger(FanoutExchange.class);
@@ -27,7 +29,8 @@ public class FanoutExchange implements BaseExchange {
     private String deadLetterRoutingKey;
     @CustomValue("exchange.fanout.ttl")
     private int messageTTL;
-
+    @Autowire
+    private ChannelPool channelPool;
 
     private Map<String, Object> argumentsDeadLetterQueue() {
         Map<String, Object> argumentsDeadLetter = new HashMap<>();
@@ -41,7 +44,6 @@ public class FanoutExchange implements BaseExchange {
     public void createExchangeAndQueue() {
         Long start = System.currentTimeMillis();
         logger.info("Start createExchangeAndQueue in FanoutExchange");
-        ChannelPool channelPool = ChannelPool.getInstance();
         Channel channel = null;
         try {
             channel = channelPool.getChannel();
