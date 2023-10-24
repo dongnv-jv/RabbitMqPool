@@ -86,7 +86,7 @@ public class CommonConfig {
             beans.put(ChannelFactory.class, channelFactory);
             beans.put(ChannelPool.class, ChannelPool.getInstance());
         } catch (Exception e) {
-            logger.error("Failed to configure ", e);
+            throw new RuntimeException("Failed to configure ", e);
         }
 
     }
