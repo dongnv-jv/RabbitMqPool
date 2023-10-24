@@ -11,13 +11,11 @@ import redis.clients.jedis.exceptions.JedisConnectionException;
 import vn.vnpay.rabbitmq.annotation.Autowire;
 import vn.vnpay.rabbitmq.annotation.Component;
 import vn.vnpay.rabbitmq.bean.PaymentRecord;
-import vn.vnpay.rabbitmq.common.ObjectConverter;
+import vn.vnpay.rabbitmq.common.CommonUtil;
 import vn.vnpay.rabbitmq.config.database.DatabaseConnectionPool;
 import vn.vnpay.rabbitmq.config.redis.RedisConfig;
 import vn.vnpay.rabbitmq.factory.PaymentRequest;
 import vn.vnpay.rabbitmq.service.IPaymentRecordService;
-
-import java.util.Optional;
 
 @Component
 public class PaymentRecordServiceImpl implements IPaymentRecordService {
@@ -28,14 +26,15 @@ public class PaymentRecordServiceImpl implements IPaymentRecordService {
     @Autowire
     private RedisConfig redisConfig;
 
-    public PaymentRecord savePaymentRecord(PaymentRecord paymentRecord) {
+    public PaymentRecord savePaymentRecord(PaymentRecord paymentRecord, String correlationId) {
+        String logId = vn.vnpay.rabbitmq.service.impl.ExchangeMessageServiceImpl.logIdThreadLocal.get();
         SessionFactory sessionFactory = connectionPool.getSessionFactory();
         Transaction transaction = null;
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction();
             session.save(paymentRecord);
             transaction.commit();
-            logger.info("Payment Record saved successfully with paymentId {}", paymentRecord.getId());
+            logger.info("[{}] - Save paymentRecord with correlationId:with correlationId: {} successfully with paymentId {}", logId, correlationId, paymentRecord.getId());
             return paymentRecord;
         } catch (HibernateException ex) {
             logger.error("Error while saving payment record to database", ex);
@@ -46,29 +45,23 @@ public class PaymentRecordServiceImpl implements IPaymentRecordService {
         }
     }
 
-    public Optional<PaymentRecord> getById(int id) {
-        SessionFactory sessionFactory = connectionPool.getSessionFactory();
-        Optional<PaymentRecord> paymentRecordOptional = Optional.empty();
-        try (Session session = sessionFactory.openSession()) {
-            paymentRecordOptional = Optional.ofNullable(session.get(PaymentRecord.class, id));
-
-        } catch (Exception ex) {
-            logger.error("Error getting payment", ex);
-        }
-        return paymentRecordOptional;
-    }
-
     public boolean pushRedis(PaymentRequest paymentRequest) {
         Jedis jedis = null;
+        String logId = vn.vnpay.rabbitmq.service.impl.ExchangeMessageServiceImpl.logIdThreadLocal.get();
         try {
             jedis = redisConfig.getJedisPool().getResource();
-            String result = jedis.setex(paymentRequest.getToken(), 120L, ObjectConverter.objectToJson(paymentRequest));
-            return "OK".equalsIgnoreCase(result);
+            String keyRedis = paymentRequest.getToken();
+            String result = jedis.setex(keyRedis, 120L, CommonUtil.objectToJson(paymentRequest));
+            boolean isPushMessageSuccessfully = "OK".equalsIgnoreCase(result);
+            if (isPushMessageSuccessfully) {
+                logger.info("[{}] - Push paymentRequest with correlationId: {} to Redis successfully !", logId, paymentRequest.getToken());
+            }
+            return isPushMessageSuccessfully;
         } catch (JedisConnectionException e) {
-            logger.error("Error connecting to Redis", e);
+            logger.error("[{}] - Error connecting to Redis", logId, e);
             return false;
         } catch (Exception e) {
-            logger.error("Error push message to redis", e);
+            logger.error("[{}] - Error push message to redis", logId, e);
             return false;
         } finally {
             if (jedis != null) {

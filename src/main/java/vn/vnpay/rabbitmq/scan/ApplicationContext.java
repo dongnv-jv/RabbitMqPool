@@ -88,7 +88,7 @@ public class ApplicationContext {
                 configValues.put(key, value);
             }
         } catch (Exception e) {
-            logger.error(" Get properties from resource failed with root cause : ", e);
+            throw new RuntimeException(" Get properties from resource failed with root cause : ", e);
         }
     }
 

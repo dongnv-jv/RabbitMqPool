@@ -1,6 +1,5 @@
 package vn.vnpay.rabbitmq;
 
-
 import vn.vnpay.rabbitmq.controller.RabbitMqController;
 import vn.vnpay.rabbitmq.scan.ApplicationContext;
 

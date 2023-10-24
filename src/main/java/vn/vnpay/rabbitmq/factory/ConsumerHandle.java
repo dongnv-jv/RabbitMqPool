@@ -4,7 +4,7 @@ import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.DefaultConsumer;
 import com.rabbitmq.client.Envelope;
-import vn.vnpay.rabbitmq.common.ObjectConverter;
+import vn.vnpay.rabbitmq.common.CommonUtil;
 
 import java.io.IOException;
 
@@ -39,7 +39,7 @@ public class ConsumerHandle<T> extends DefaultConsumer {
     public void handleDelivery(String consumerTag, Envelope envelope, AMQP.BasicProperties properties, byte[] body) throws IOException {
 
         try {
-            data = (T) ObjectConverter.bytesToObject(body, data.getClass());
+            data = (T) CommonUtil.bytesToObject(body, data.getClass());
 
             channel.basicAck(envelope.getDeliveryTag(), false);
         } catch (Exception e) {
