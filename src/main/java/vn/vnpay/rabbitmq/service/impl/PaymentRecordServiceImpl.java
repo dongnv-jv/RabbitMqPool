@@ -34,7 +34,8 @@ public class PaymentRecordServiceImpl implements IPaymentRecordService {
             transaction = session.beginTransaction();
             session.save(paymentRecord);
             transaction.commit();
-            logger.info("[{}] - Save paymentRecord with correlationId:with correlationId: {} successfully with paymentId {}", logId, correlationId, paymentRecord.getId());
+            logger.info("[{}] - Save paymentRecord with correlationId:with correlationId: {} successfully with paymentId {}",
+                    logId, correlationId, paymentRecord.getId());
             return paymentRecord;
         } catch (HibernateException ex) {
             logger.error("Error while saving payment record to database", ex);
@@ -51,10 +52,14 @@ public class PaymentRecordServiceImpl implements IPaymentRecordService {
         try {
             jedis = redisConfig.getJedisPool().getResource();
             String keyRedis = paymentRequest.getToken();
-            String result = jedis.setex(keyRedis, 120L, CommonUtil.objectToJson(paymentRequest));
-            boolean isPushMessageSuccessfully = "OK".equalsIgnoreCase(result);
+            String resultPushMessage = "";
+            if (jedis != null) {
+                resultPushMessage = jedis.setex(keyRedis, 120L, CommonUtil.objectToJson(paymentRequest));
+            }
+            boolean isPushMessageSuccessfully = "OK".equalsIgnoreCase(resultPushMessage);
             if (isPushMessageSuccessfully) {
-                logger.info("[{}] - Push paymentRequest with correlationId: {} to Redis successfully !", logId, paymentRequest.getToken());
+                logger.info("[{}] - Push paymentRequest with correlationId: {} to Redis successfully !", logId,
+                        paymentRequest.getToken());
             }
             return isPushMessageSuccessfully;
         } catch (JedisConnectionException e) {

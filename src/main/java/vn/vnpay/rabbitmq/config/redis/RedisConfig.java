@@ -15,7 +15,8 @@ public class RedisConfig {
         poolConfig.setMinIdle(minIdle);
         poolConfig.setMaxIdle(maxIdle);
         jedisPool = new JedisPool(poolConfig, host,
-                port, username, password);
+                port);
+        jedisPool.addObjects(minIdle);
     }
 
     public JedisPool getJedisPool() {

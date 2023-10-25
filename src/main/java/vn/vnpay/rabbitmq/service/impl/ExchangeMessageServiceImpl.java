@@ -17,7 +17,6 @@ import vn.vnpay.rabbitmq.bean.PaymentRecord;
 import vn.vnpay.rabbitmq.common.CommonUtil;
 import vn.vnpay.rabbitmq.common.ResponseCode;
 import vn.vnpay.rabbitmq.config.channel.ChannelPool;
-import vn.vnpay.rabbitmq.config.threadpool.ThreadPoolConfig;
 import vn.vnpay.rabbitmq.factory.PaymentRequest;
 import vn.vnpay.rabbitmq.factory.Response;
 import vn.vnpay.rabbitmq.factory.ResponsePayment;
@@ -30,7 +29,6 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 
 @Component
 public class ExchangeMessageServiceImpl implements IExchangeMessageService {
@@ -89,10 +87,7 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
     public void sendMessage(Object message, String routingKey, String exchangeName, Map<String, Object> mapPropsForHeaders) {
         long start = System.currentTimeMillis();
         logger.info("Start sendToExchange in ExchangeMessageServiceImpl ");
-        Executor executor = ThreadPoolConfig.getExecutor();
-        for (int i = 0; i < 30; i++) {
-            executor.execute(() -> this.sendToExchange(message, channelPool, routingKey, exchangeName, mapPropsForHeaders));
-        }
+        this.sendToExchange(message, channelPool, routingKey, exchangeName, mapPropsForHeaders);
         long end = System.currentTimeMillis();
         logger.info("Process sendToExchange in ExchangeMessageServiceImpl take {} millisecond", (end - start));
     }
@@ -191,6 +186,7 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
             Response<ResponsePayment> response = new Response<>();
             PaymentRequest paymentRequest = null;
             Date dateExpire = delivery.getProperties().getTimestamp();
+            logger.info("[{}] - Receiver messages from queue {} with dateExpire {}", logId, rpcQueueName, dateExpire);
             Date dateNow = new Date();
             long expiration = 60;
             boolean isExpired = CommonUtil.compareDate(dateExpire, dateNow, expiration);
@@ -239,17 +235,17 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
                     logger.info("[{}] - Process Payment successfully with response {}", logId, responseLog);
                 } else {
                     responseLog = this.setResponse(response, ResponseCode.FAILURE.getCode(), ResponseCode.FAILURE.getMessage(), null);
-                    logger.info("[{}] - Process Payment failed due to processPayment message with response {}", logId, responseLog);
+                    logger.error("[{}] - Process Payment failed due to processPayment message with response {}", logId, responseLog);
                 }
             } else {
                 responseLog = this.setResponse(response, ResponseCode.FAILURE.getCode(), "Message expired", null);
-                logger.info("[{}] - Process payment failed due to expired message with response {}", logId, responseLog);
+                logger.error("[{}] - Process payment failed due to expired message with response {}", logId, responseLog);
             }
 
         } catch (IOException e) {
             response.setCode(ResponseCode.FAILURE.getCode());
-            response.setMessage(e.getMessage());
-            logger.error("Process Payment failed ", e);
+            response.setMessage("An error occurred while processing");
+            logger.error("[{}] - Process Payment failed ", logId, e);
         }
         return response;
     }
@@ -262,14 +258,12 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
     }
 
     private boolean processPayment(PaymentRequest paymentRequest, ResponsePayment responsePayment) throws IOException {
-        String logId = logIdThreadLocal.get();
         boolean isPushRedis = iPaymentRecordService.pushRedis(paymentRequest);
         this.sleep();
         if (isPushRedis) {
             PaymentRecord paymentRecord = this.savePaymentRecord(paymentRequest, responsePayment);
             return paymentRecord.getId() != null;
         } else {
-            logger.info("[{}] - Payment processing failed due to a Redis push failure", logId);
             return false;
         }
     }
@@ -286,7 +280,6 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
 
     private PaymentRecord savePaymentRecord(PaymentRequest paymentRequest, ResponsePayment responsePayment) throws IOException {
         PaymentRecord paymentRecord = this.convertRequest(paymentRequest);
-        String logId = logIdThreadLocal.get();
         paymentRecord = iPaymentRecordService.savePaymentRecord(paymentRecord, paymentRequest.getToken());
         if (paymentRecord.getId() != null) {
             responsePayment.setId(paymentRecord.getId());
@@ -295,6 +288,7 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
     }
 
     private PaymentRecord convertRequest(PaymentRequest request) throws IOException {
+        String logId = logIdThreadLocal.get();
         PaymentRecord paymentRecord = new PaymentRecord();
         paymentRecord.setCustomerName(request.getCustomerName());
         paymentRecord.setAmount(request.getAmount());
@@ -304,6 +298,7 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
         paymentRecord.setRescode(request.getRescode());
         paymentRecord.setPayDate(CommonUtil.convertStringToDateTime(request.getPayDate()));
         paymentRecord.setLocalDate(LocalDateTime.now());
+        logger.info("[{}] - Convert PaymentRequest to paymentRecord successfully ", logId);
         return paymentRecord;
     }
 
@@ -320,6 +315,5 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
     private void acknowledgeDelivery(Channel channel, Delivery delivery) throws IOException {
         channel.basicAck(delivery.getEnvelope().getDeliveryTag(), false);
     }
-
 
 }

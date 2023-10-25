@@ -61,9 +61,11 @@ public class ChannelFactory implements PooledObjectFactory<Channel> {
 
     @Override
     public void activateObject(PooledObject<Channel> pooledObject) {
+        // Do nothing
     }
 
     @Override
     public void passivateObject(PooledObject<Channel> pooledObject) {
+        // do nothing
     }
 }
