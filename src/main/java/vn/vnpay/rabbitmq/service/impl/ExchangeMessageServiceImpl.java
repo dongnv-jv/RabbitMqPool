@@ -190,7 +190,7 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
             long expiration = 60;
             boolean isExpired = CommonUtil.compareDate(dateExpire, dateNow, expiration);
             if (isExpired) {
-                logger.info("[{}] - Start processing messages from queue {}", logId, rpcQueueName);
+                logger.info("[{}] - Start getting data from messages", logId);
                 paymentRequest = this.getPaymentRequest(delivery).orElseThrow(() -> new RuntimeException("Payment request not found"));
             }
             response = this.processPayment(paymentRequest, isExpired);
@@ -210,17 +210,18 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
         try {
             paymentRequest = CommonUtil.bytesToObject(delivery.getBody(), PaymentRequest.class);
             paymentRequest.setToken(delivery.getProperties().getCorrelationId());
-            logger.info("[{}] - Received payment request successfully with correlationId: {}", logId,
+            logger.info("[{}] - Get payment request successfully with correlationId: {}", logId,
                     delivery.getProperties().getCorrelationId());
             return Optional.of(paymentRequest);
         } catch (Exception e) {
-            logger.error("Received payment request fail ", e);
+            logger.error("[{}] - Received payment request fail ", logId, e);
             return Optional.empty();
         }
     }
 
     private Response<ResponsePayment> processPayment(PaymentRequest paymentRequest, boolean isExpired) {
         String logId = logIdThreadLocal.get();
+        logger.info("[{}] - Start process Payment request ", logId);
         Response<ResponsePayment> response = new Response<>();
         ResponsePayment responsePayment = new ResponsePayment();
         String responseLog;

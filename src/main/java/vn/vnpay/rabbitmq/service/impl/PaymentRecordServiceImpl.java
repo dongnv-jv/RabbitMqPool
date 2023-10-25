@@ -38,11 +38,17 @@ public class PaymentRecordServiceImpl implements IPaymentRecordService {
                     logId, correlationId, paymentRecord.getId());
             return paymentRecord;
         } catch (HibernateException ex) {
-            logger.error("Error while saving payment record to database", ex);
+            logger.error("[{}] - Error while saving payment record to database with cause HibernateException",logId, ex);
             if (transaction != null && transaction.isActive()) {
                 transaction.rollback();
             }
-            return new PaymentRecord();
+            return paymentRecord;
+        } catch (Exception ex) {
+            logger.error("[{}] - Occur error while saving payment record to database",logId, ex);
+            if (transaction != null && transaction.isActive()) {
+                transaction.rollback();
+            }
+            return paymentRecord;
         }
     }
 
