@@ -9,8 +9,10 @@ import java.util.Map;
 
 public class ValueInjector {
     private static final Logger logger = LoggerFactory.getLogger(ValueInjector.class);
+
     private ValueInjector() {
     }
+
     public static void injectValues(Object target, Map<String, Object> configValues) throws IllegalAccessException {
         Field[] fields = target.getClass().getDeclaredFields();
         for (Field field : fields) {

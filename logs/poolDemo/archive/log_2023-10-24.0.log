@@ -1,0 +1,176 @@
+2023-10-24 16:55:34.859 [main] INFO  org.hibernate.Version(45) -  HHH000412: Hibernate Core {5.2.10.Final}
+2023-10-24 16:55:34.868 [main] INFO  org.hibernate.cfg.Environment(213) -  HHH000206: hibernate.properties not found
+2023-10-24 16:55:34.884 [main] INFO  v.v.r.c.d.DatabaseConnectionPool(57) -  Hibernate Registry builder created.
+2023-10-24 16:55:34.933 [main] INFO  o.h.annotations.common.Version(66) -  HCANN000001: Hibernate Commons Annotations {5.0.1.Final}
+2023-10-24 16:55:35.085 [main] INFO  c.z.hikari.HikariDataSource(71) -  HikariPool-1 - Starting...
+2023-10-24 16:55:35.450 [main] INFO  c.z.hikari.HikariDataSource(73) -  HikariPool-1 - Start completed.
+2023-10-24 16:55:35.466 [main] INFO  org.hibernate.dialect.Dialect(157) -  HHH000400: Using dialect: org.hibernate.dialect.PostgreSQL81Dialect
+2023-10-24 16:55:35.566 [main] INFO  o.h.e.j.e.i.LobCreatorBuilderImpl(124) -  HHH000424: Disabling contextual LOB creation as createClob() method threw error : java.lang.reflect.InvocationTargetException
+2023-10-24 16:55:37.385 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(74) -   Object Connection d2209179-c01d-4125-a5a8-b123ba1c88f4 is creating 
+2023-10-24 16:55:38.052 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(74) -   Object Connection 94bd3aca-acf3-412f-9a28-6169ecf6c5dc is creating 
+2023-10-24 16:55:38.616 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(74) -   Object Connection 39d1e9d3-84ad-409d-993b-852e250273a0 is creating 
+2023-10-24 16:55:38.617 [main] INFO  v.v.r.c.c.RabbitMqConnectionPool(62) -  Create InternalPool with 3 Connection in Pool
+2023-10-24 16:55:38.620 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(100) -   Object Connection 39d1e9d3-84ad-409d-993b-852e250273a0 is calling !
+2023-10-24 16:55:38.622 [main] INFO  v.v.r.c.c.RabbitMqConnectionPool(85) -   Quantity connection Active in Connection pool: 1
+2023-10-24 16:55:38.622 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(106) -   Object Connection 39d1e9d3-84ad-409d-993b-852e250273a0 is returning !
+2023-10-24 16:55:40.088 [main] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(165) -   Start processRPCServer in ExchangeMessageServiceImpl 
+2023-10-24 16:55:40.381 [main] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(172) -  Process processRPCServer in ExchangeMessageServiceImpl take 293 millisecond
+2023-10-24 16:55:50.330 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(194) -  [20231024165549975-ae33dcb828734337a8a7a5dbb40507f5] - Receiver messages from queue rpc_request_queue with dateExpire Tue Oct 24 16:55:50 ICT 2023
+2023-10-24 16:55:50.330 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(199) -  [20231024165549975-ae33dcb828734337a8a7a5dbb40507f5] - Start processing messages from queue rpc_request_queue
+2023-10-24 16:55:50.385 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(219) -  [20231024165549975-ae33dcb828734337a8a7a5dbb40507f5] - Received payment request successfully with correlationId: 020ce19a-44e9-40db-99dc-14c078b1124f
+2023-10-24 16:55:51.350 [pool-6-thread-4] INFO  v.v.r.s.i.PaymentRecordServiceImpl(60) -  [20231024165549975-ae33dcb828734337a8a7a5dbb40507f5] - Push paymentRequest with correlationId: 020ce19a-44e9-40db-99dc-14c078b1124f to Redis successfully !
+2023-10-24 16:55:51.677 [pool-6-thread-4] ERROR v.v.r.s.i.ExchangeMessageServiceImpl(253) -  Process Payment failed 
+com.fasterxml.jackson.databind.exc.InvalidDefinitionException: Java 8 date/time type `java.time.LocalDateTime` not supported by default: add Module "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" to enable handling (through reference chain: vn.vnpay.rabbitmq.bean.PaymentRecord["payDate"])
+	at com.fasterxml.jackson.databind.exc.InvalidDefinitionException.from(InvalidDefinitionException.java:77)
+	at com.fasterxml.jackson.databind.SerializerProvider.reportBadDefinition(SerializerProvider.java:1300)
+	at com.fasterxml.jackson.databind.ser.impl.UnsupportedTypeSerializer.serialize(UnsupportedTypeSerializer.java:35)
+	at com.fasterxml.jackson.databind.ser.BeanPropertyWriter.serializeAsField(BeanPropertyWriter.java:728)
+	at com.fasterxml.jackson.databind.ser.std.BeanSerializerBase.serializeFields(BeanSerializerBase.java:774)
+	at com.fasterxml.jackson.databind.ser.BeanSerializer.serialize(BeanSerializer.java:178)
+	at com.fasterxml.jackson.databind.ser.DefaultSerializerProvider._serialize(DefaultSerializerProvider.java:480)
+	at com.fasterxml.jackson.databind.ser.DefaultSerializerProvider.serializeValue(DefaultSerializerProvider.java:319)
+	at com.fasterxml.jackson.databind.ObjectMapper._writeValueAndClose(ObjectMapper.java:4568)
+	at com.fasterxml.jackson.databind.ObjectMapper.writeValueAsString(ObjectMapper.java:3821)
+	at vn.vnpay.rabbitmq.common.CommonUtil.objectToJson(CommonUtil.java:32)
+	at vn.vnpay.rabbitmq.service.impl.ExchangeMessageServiceImpl.convertRequest(ExchangeMessageServiceImpl.java:306)
+	at vn.vnpay.rabbitmq.service.impl.ExchangeMessageServiceImpl.savePaymentRecord(ExchangeMessageServiceImpl.java:287)
+	at vn.vnpay.rabbitmq.service.impl.ExchangeMessageServiceImpl.processPayment(ExchangeMessageServiceImpl.java:269)
+	at vn.vnpay.rabbitmq.service.impl.ExchangeMessageServiceImpl.processPayment(ExchangeMessageServiceImpl.java:235)
+	at vn.vnpay.rabbitmq.service.impl.ExchangeMessageServiceImpl.lambda$processDeliveries$3(ExchangeMessageServiceImpl.java:202)
+	at com.rabbitmq.client.impl.recovery.AutorecoveringChannel$2.handleDelivery(AutorecoveringChannel.java:588)
+	at com.rabbitmq.client.impl.ConsumerDispatcher$5.run(ConsumerDispatcher.java:149)
+	at com.rabbitmq.client.impl.ConsumerWorkService$WorkPoolRunnable.run(ConsumerWorkService.java:111)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:750)
+2023-10-24 16:55:51.684 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(318) -  [20231024165549975-ae33dcb828734337a8a7a5dbb40507f5] - Publish Response to rabbitMq successfully !
+2023-10-24 16:55:51.684 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(206) -  [20231024165549975-ae33dcb828734337a8a7a5dbb40507f5] - End processing processDeliveries in ExchangeMessageServiceImpl takes 1368 milliseconds
+2023-10-24 16:58:08.098 [main] INFO  org.hibernate.Version(45) -  HHH000412: Hibernate Core {5.2.10.Final}
+2023-10-24 16:58:08.102 [main] INFO  org.hibernate.cfg.Environment(213) -  HHH000206: hibernate.properties not found
+2023-10-24 16:58:08.110 [main] INFO  v.v.r.c.d.DatabaseConnectionPool(57) -  Hibernate Registry builder created.
+2023-10-24 16:58:08.151 [main] INFO  o.h.annotations.common.Version(66) -  HCANN000001: Hibernate Commons Annotations {5.0.1.Final}
+2023-10-24 16:58:08.294 [main] INFO  c.z.hikari.HikariDataSource(71) -  HikariPool-1 - Starting...
+2023-10-24 16:58:08.642 [main] INFO  c.z.hikari.HikariDataSource(73) -  HikariPool-1 - Start completed.
+2023-10-24 16:58:08.655 [main] INFO  org.hibernate.dialect.Dialect(157) -  HHH000400: Using dialect: org.hibernate.dialect.PostgreSQL81Dialect
+2023-10-24 16:58:08.740 [main] INFO  o.h.e.j.e.i.LobCreatorBuilderImpl(124) -  HHH000424: Disabling contextual LOB creation as createClob() method threw error : java.lang.reflect.InvocationTargetException
+2023-10-24 16:58:09.945 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(74) -   Object Connection 3ab9adcd-54a3-4861-9ad7-e9ea4e820883 is creating 
+2023-10-24 16:58:10.508 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(74) -   Object Connection c43be0e1-03e1-48b5-8fe3-d08aff1e66ed is creating 
+2023-10-24 16:58:11.119 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(74) -   Object Connection 10901478-9e3f-49f6-940c-f54b8c08bd4d is creating 
+2023-10-24 16:58:11.120 [main] INFO  v.v.r.c.c.RabbitMqConnectionPool(62) -  Create InternalPool with 3 Connection in Pool
+2023-10-24 16:58:11.122 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(100) -   Object Connection 10901478-9e3f-49f6-940c-f54b8c08bd4d is calling !
+2023-10-24 16:58:11.122 [main] INFO  v.v.r.c.c.RabbitMqConnectionPool(85) -   Quantity connection Active in Connection pool: 1
+2023-10-24 16:58:11.123 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(106) -   Object Connection 10901478-9e3f-49f6-940c-f54b8c08bd4d is returning !
+2023-10-24 16:58:12.691 [main] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(165) -   Start processRPCServer in ExchangeMessageServiceImpl 
+2023-10-24 16:58:13.010 [main] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(172) -  Process processRPCServer in ExchangeMessageServiceImpl take 319 millisecond
+2023-10-24 16:58:22.427 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(194) -  [20231024165822137-0e8aae4891b64e3c8437a20c05fb10ee] - Receiver messages from queue rpc_request_queue with dateExpire Tue Oct 24 16:58:22 ICT 2023
+2023-10-24 16:58:22.428 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(199) -  [20231024165822137-0e8aae4891b64e3c8437a20c05fb10ee] - Start processing messages from queue rpc_request_queue
+2023-10-24 16:58:22.492 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(219) -  [20231024165822137-0e8aae4891b64e3c8437a20c05fb10ee] - Received payment request successfully with correlationId: 5dd2351c-c47e-4fd4-8f3c-b38a329ec055
+2023-10-24 16:58:23.447 [pool-6-thread-4] INFO  v.v.r.s.i.PaymentRecordServiceImpl(60) -  [20231024165822137-0e8aae4891b64e3c8437a20c05fb10ee] - Push paymentRequest with correlationId: 5dd2351c-c47e-4fd4-8f3c-b38a329ec055 to Redis successfully !
+2023-10-24 16:58:23.773 [pool-6-thread-4] ERROR v.v.r.s.i.ExchangeMessageServiceImpl(253) -  [20231024165822137-0e8aae4891b64e3c8437a20c05fb10ee] - Process Payment failed 
+com.fasterxml.jackson.databind.exc.InvalidDefinitionException: Java 8 date/time type `java.time.LocalDateTime` not supported by default: add Module "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" to enable handling (through reference chain: vn.vnpay.rabbitmq.bean.PaymentRecord["payDate"])
+	at com.fasterxml.jackson.databind.exc.InvalidDefinitionException.from(InvalidDefinitionException.java:77)
+	at com.fasterxml.jackson.databind.SerializerProvider.reportBadDefinition(SerializerProvider.java:1300)
+	at com.fasterxml.jackson.databind.ser.impl.UnsupportedTypeSerializer.serialize(UnsupportedTypeSerializer.java:35)
+	at com.fasterxml.jackson.databind.ser.BeanPropertyWriter.serializeAsField(BeanPropertyWriter.java:728)
+	at com.fasterxml.jackson.databind.ser.std.BeanSerializerBase.serializeFields(BeanSerializerBase.java:774)
+	at com.fasterxml.jackson.databind.ser.BeanSerializer.serialize(BeanSerializer.java:178)
+	at com.fasterxml.jackson.databind.ser.DefaultSerializerProvider._serialize(DefaultSerializerProvider.java:480)
+	at com.fasterxml.jackson.databind.ser.DefaultSerializerProvider.serializeValue(DefaultSerializerProvider.java:319)
+	at com.fasterxml.jackson.databind.ObjectMapper._writeValueAndClose(ObjectMapper.java:4568)
+	at com.fasterxml.jackson.databind.ObjectMapper.writeValueAsString(ObjectMapper.java:3821)
+	at vn.vnpay.rabbitmq.common.CommonUtil.objectToJson(CommonUtil.java:32)
+	at vn.vnpay.rabbitmq.service.impl.ExchangeMessageServiceImpl.convertRequest(ExchangeMessageServiceImpl.java:306)
+	at vn.vnpay.rabbitmq.service.impl.ExchangeMessageServiceImpl.savePaymentRecord(ExchangeMessageServiceImpl.java:287)
+	at vn.vnpay.rabbitmq.service.impl.ExchangeMessageServiceImpl.processPayment(ExchangeMessageServiceImpl.java:269)
+	at vn.vnpay.rabbitmq.service.impl.ExchangeMessageServiceImpl.processPayment(ExchangeMessageServiceImpl.java:235)
+	at vn.vnpay.rabbitmq.service.impl.ExchangeMessageServiceImpl.lambda$processDeliveries$3(ExchangeMessageServiceImpl.java:202)
+	at com.rabbitmq.client.impl.recovery.AutorecoveringChannel$2.handleDelivery(AutorecoveringChannel.java:588)
+	at com.rabbitmq.client.impl.ConsumerDispatcher$5.run(ConsumerDispatcher.java:149)
+	at com.rabbitmq.client.impl.ConsumerWorkService$WorkPoolRunnable.run(ConsumerWorkService.java:111)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:750)
+2023-10-24 16:58:23.776 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(318) -  [20231024165822137-0e8aae4891b64e3c8437a20c05fb10ee] - Publish Response to rabbitMq successfully !
+2023-10-24 16:58:23.777 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(206) -  [20231024165822137-0e8aae4891b64e3c8437a20c05fb10ee] - End processing processDeliveries in ExchangeMessageServiceImpl takes 1350 milliseconds
+2023-10-24 17:03:06.685 [main] INFO  org.hibernate.Version(45) -  HHH000412: Hibernate Core {5.2.10.Final}
+2023-10-24 17:03:06.689 [main] INFO  org.hibernate.cfg.Environment(213) -  HHH000206: hibernate.properties not found
+2023-10-24 17:03:06.697 [main] INFO  v.v.r.c.d.DatabaseConnectionPool(57) -  Hibernate Registry builder created.
+2023-10-24 17:03:06.726 [main] INFO  o.h.annotations.common.Version(66) -  HCANN000001: Hibernate Commons Annotations {5.0.1.Final}
+2023-10-24 17:03:06.830 [main] INFO  c.z.hikari.HikariDataSource(71) -  HikariPool-1 - Starting...
+2023-10-24 17:03:07.169 [main] INFO  c.z.hikari.HikariDataSource(73) -  HikariPool-1 - Start completed.
+2023-10-24 17:03:07.184 [main] INFO  org.hibernate.dialect.Dialect(157) -  HHH000400: Using dialect: org.hibernate.dialect.PostgreSQL81Dialect
+2023-10-24 17:03:07.262 [main] INFO  o.h.e.j.e.i.LobCreatorBuilderImpl(124) -  HHH000424: Disabling contextual LOB creation as createClob() method threw error : java.lang.reflect.InvocationTargetException
+2023-10-24 17:03:08.510 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(74) -   Object Connection 9c7db629-a50c-41bf-a033-f9d203a7120c is creating 
+2023-10-24 17:03:09.138 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(74) -   Object Connection 00293ea7-ba38-4ec2-aee5-a1b839a6f524 is creating 
+2023-10-24 17:03:09.749 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(74) -   Object Connection 38b84045-8d72-4f3a-a2fd-5894d3efd1ab is creating 
+2023-10-24 17:03:09.750 [main] INFO  v.v.r.c.c.RabbitMqConnectionPool(62) -  Create InternalPool with 3 Connection in Pool
+2023-10-24 17:03:09.751 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(100) -   Object Connection 38b84045-8d72-4f3a-a2fd-5894d3efd1ab is calling !
+2023-10-24 17:03:09.752 [main] INFO  v.v.r.c.c.RabbitMqConnectionPool(85) -   Quantity connection Active in Connection pool: 1
+2023-10-24 17:03:09.753 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(106) -   Object Connection 38b84045-8d72-4f3a-a2fd-5894d3efd1ab is returning !
+2023-10-24 17:03:11.307 [main] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(165) -   Start processRPCServer in ExchangeMessageServiceImpl 
+2023-10-24 17:03:11.619 [main] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(172) -  Process processRPCServer in ExchangeMessageServiceImpl take 312 millisecond
+2023-10-24 17:03:21.030 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(194) -  [20231024170320745-10f012a1bd1640afa7f30005eae54a17] - Receiver messages from queue rpc_request_queue with dateExpire Tue Oct 24 17:03:20 ICT 2023
+2023-10-24 17:03:21.030 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(199) -  [20231024170320745-10f012a1bd1640afa7f30005eae54a17] - Start processing messages from queue rpc_request_queue
+2023-10-24 17:03:21.089 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(219) -  [20231024170320745-10f012a1bd1640afa7f30005eae54a17] - Received payment request successfully with correlationId: 0c99d4b4-24a6-47bd-aaca-507768adcc11
+2023-10-24 17:03:22.122 [pool-6-thread-4] INFO  v.v.r.s.i.PaymentRecordServiceImpl(60) -  [20231024170320745-10f012a1bd1640afa7f30005eae54a17] - Push paymentRequest with correlationId: 0c99d4b4-24a6-47bd-aaca-507768adcc11 to Redis successfully !
+2023-10-24 17:03:22.463 [pool-6-thread-4] ERROR v.v.r.s.i.ExchangeMessageServiceImpl(253) -  [20231024170320745-10f012a1bd1640afa7f30005eae54a17] - Process Payment failed 
+com.fasterxml.jackson.databind.exc.InvalidDefinitionException: Java 8 date/time type `java.time.LocalDateTime` not supported by default: add Module "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" to enable handling (through reference chain: vn.vnpay.rabbitmq.bean.PaymentRecord["payDate"])
+	at com.fasterxml.jackson.databind.exc.InvalidDefinitionException.from(InvalidDefinitionException.java:77)
+	at com.fasterxml.jackson.databind.SerializerProvider.reportBadDefinition(SerializerProvider.java:1300)
+	at com.fasterxml.jackson.databind.ser.impl.UnsupportedTypeSerializer.serialize(UnsupportedTypeSerializer.java:35)
+	at com.fasterxml.jackson.databind.ser.BeanPropertyWriter.serializeAsField(BeanPropertyWriter.java:728)
+	at com.fasterxml.jackson.databind.ser.std.BeanSerializerBase.serializeFields(BeanSerializerBase.java:774)
+	at com.fasterxml.jackson.databind.ser.BeanSerializer.serialize(BeanSerializer.java:178)
+	at com.fasterxml.jackson.databind.ser.DefaultSerializerProvider._serialize(DefaultSerializerProvider.java:480)
+	at com.fasterxml.jackson.databind.ser.DefaultSerializerProvider.serializeValue(DefaultSerializerProvider.java:319)
+	at com.fasterxml.jackson.databind.ObjectMapper._writeValueAndClose(ObjectMapper.java:4568)
+	at com.fasterxml.jackson.databind.ObjectMapper.writeValueAsString(ObjectMapper.java:3821)
+	at vn.vnpay.rabbitmq.common.CommonUtil.objectToJson(CommonUtil.java:32)
+	at vn.vnpay.rabbitmq.service.impl.ExchangeMessageServiceImpl.convertRequest(ExchangeMessageServiceImpl.java:306)
+	at vn.vnpay.rabbitmq.service.impl.ExchangeMessageServiceImpl.savePaymentRecord(ExchangeMessageServiceImpl.java:287)
+	at vn.vnpay.rabbitmq.service.impl.ExchangeMessageServiceImpl.processPayment(ExchangeMessageServiceImpl.java:269)
+	at vn.vnpay.rabbitmq.service.impl.ExchangeMessageServiceImpl.processPayment(ExchangeMessageServiceImpl.java:235)
+	at vn.vnpay.rabbitmq.service.impl.ExchangeMessageServiceImpl.lambda$processDeliveries$3(ExchangeMessageServiceImpl.java:202)
+	at com.rabbitmq.client.impl.recovery.AutorecoveringChannel$2.handleDelivery(AutorecoveringChannel.java:588)
+	at com.rabbitmq.client.impl.ConsumerDispatcher$5.run(ConsumerDispatcher.java:149)
+	at com.rabbitmq.client.impl.ConsumerWorkService$WorkPoolRunnable.run(ConsumerWorkService.java:111)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1149)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:624)
+	at java.lang.Thread.run(Thread.java:750)
+2023-10-24 17:03:22.465 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(318) -  [20231024170320745-10f012a1bd1640afa7f30005eae54a17] - Publish Response to rabbitMq successfully !
+2023-10-24 17:03:22.466 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(206) -  [20231024170320745-10f012a1bd1640afa7f30005eae54a17] - End processing processDeliveries in ExchangeMessageServiceImpl takes 1436 milliseconds
+2023-10-24 17:11:36.594 [main] INFO  org.hibernate.Version(45) -  HHH000412: Hibernate Core {5.2.10.Final}
+2023-10-24 17:11:36.599 [main] INFO  org.hibernate.cfg.Environment(213) -  HHH000206: hibernate.properties not found
+2023-10-24 17:11:36.610 [main] INFO  v.v.r.c.d.DatabaseConnectionPool(57) -  Hibernate Registry builder created.
+2023-10-24 17:11:36.642 [main] INFO  o.h.annotations.common.Version(66) -  HCANN000001: Hibernate Commons Annotations {5.0.1.Final}
+2023-10-24 17:11:36.747 [main] INFO  c.z.hikari.HikariDataSource(71) -  HikariPool-1 - Starting...
+2023-10-24 17:11:37.086 [main] INFO  c.z.hikari.HikariDataSource(73) -  HikariPool-1 - Start completed.
+2023-10-24 17:11:37.099 [main] INFO  org.hibernate.dialect.Dialect(157) -  HHH000400: Using dialect: org.hibernate.dialect.PostgreSQL81Dialect
+2023-10-24 17:11:37.174 [main] INFO  o.h.e.j.e.i.LobCreatorBuilderImpl(124) -  HHH000424: Disabling contextual LOB creation as createClob() method threw error : java.lang.reflect.InvocationTargetException
+2023-10-24 17:11:38.344 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(74) -   Object Connection 8d871d4c-4703-46f5-ba19-1dd7b22ccd48 is creating 
+2023-10-24 17:11:39.452 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(74) -   Object Connection 75387b73-9890-4576-9343-e7758b185e36 is creating 
+2023-10-24 17:11:40.066 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(74) -   Object Connection 1cf96a88-1045-49b0-b86e-de4c3385f03a is creating 
+2023-10-24 17:11:40.068 [main] INFO  v.v.r.c.c.RabbitMqConnectionPool(62) -  Create InternalPool with 3 Connection in Pool
+2023-10-24 17:11:40.069 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(100) -   Object Connection 1cf96a88-1045-49b0-b86e-de4c3385f03a is calling !
+2023-10-24 17:11:40.070 [main] INFO  v.v.r.c.c.RabbitMqConnectionPool(85) -   Quantity connection Active in Connection pool: 1
+2023-10-24 17:11:40.071 [main] INFO  v.v.r.c.c.RabbitMqConnectionFactory(106) -   Object Connection 1cf96a88-1045-49b0-b86e-de4c3385f03a is returning !
+2023-10-24 17:11:41.629 [main] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(165) -   Start processRPCServer in ExchangeMessageServiceImpl 
+2023-10-24 17:11:41.942 [main] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(172) -  Process processRPCServer in ExchangeMessageServiceImpl take 313 millisecond
+2023-10-24 17:11:48.940 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(194) -  [20231024171148657-554f326b0132472c891bd96e10ffe2c3] - Receiver messages from queue rpc_request_queue with dateExpire Tue Oct 24 17:11:48 ICT 2023
+2023-10-24 17:11:48.940 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(199) -  [20231024171148657-554f326b0132472c891bd96e10ffe2c3] - Start processing messages from queue rpc_request_queue
+2023-10-24 17:11:48.997 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(219) -  [20231024171148657-554f326b0132472c891bd96e10ffe2c3] - Received payment request successfully with correlationId: 9ae0c6c6-b580-4a9f-9422-74beebef5c42
+2023-10-24 17:11:49.965 [pool-6-thread-4] INFO  v.v.r.s.i.PaymentRecordServiceImpl(60) -  [20231024171148657-554f326b0132472c891bd96e10ffe2c3] - Push paymentRequest with correlationId: 9ae0c6c6-b580-4a9f-9422-74beebef5c42 to Redis successfully !
+2023-10-24 17:11:50.280 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(306) -  [20231024171148657-554f326b0132472c891bd96e10ffe2c3] - Convert PaymentRequest to paymentRecord successfully 
+2023-10-24 17:11:50.373 [pool-6-thread-4] INFO  v.v.r.s.i.PaymentRecordServiceImpl(37) -  [20231024171148657-554f326b0132472c891bd96e10ffe2c3] - Save paymentRecord with correlationId:with correlationId: 9ae0c6c6-b580-4a9f-9422-74beebef5c42 successfully with paymentId 2156
+2023-10-24 17:11:50.376 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(240) -  [20231024171148657-554f326b0132472c891bd96e10ffe2c3] - Process Payment successfully with response {"code":"00","message":"Success","data":{"id":2156,"token":"9ae0c6c6-b580-4a9f-9422-74beebef5c42"}}
+2023-10-24 17:11:50.378 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(317) -  [20231024171148657-554f326b0132472c891bd96e10ffe2c3] - Publish Response to rabbitMq successfully !
+2023-10-24 17:11:50.378 [pool-6-thread-4] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(206) -  [20231024171148657-554f326b0132472c891bd96e10ffe2c3] - End processing processDeliveries in ExchangeMessageServiceImpl takes 1438 milliseconds
+2023-10-24 17:12:23.553 [pool-6-thread-5] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(194) -  [20231024171223275-b37886970992469e827b1c2fcef89ee0] - Receiver messages from queue rpc_request_queue with dateExpire Tue Oct 24 17:12:23 ICT 2023
+2023-10-24 17:12:23.554 [pool-6-thread-5] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(199) -  [20231024171223275-b37886970992469e827b1c2fcef89ee0] - Start processing messages from queue rpc_request_queue
+2023-10-24 17:12:23.555 [pool-6-thread-5] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(219) -  [20231024171223275-b37886970992469e827b1c2fcef89ee0] - Received payment request successfully with correlationId: ccf74a1f-0a69-459c-ae63-83c4fcb11d44
+2023-10-24 17:12:23.796 [pool-6-thread-5] INFO  v.v.r.s.i.PaymentRecordServiceImpl(60) -  [20231024171223275-b37886970992469e827b1c2fcef89ee0] - Push paymentRequest with correlationId: ccf74a1f-0a69-459c-ae63-83c4fcb11d44 to Redis successfully !
+2023-10-24 17:12:24.101 [pool-6-thread-5] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(306) -  [20231024171223275-b37886970992469e827b1c2fcef89ee0] - Convert PaymentRequest to paymentRecord successfully 
+2023-10-24 17:12:24.105 [pool-6-thread-5] INFO  v.v.r.s.i.PaymentRecordServiceImpl(37) -  [20231024171223275-b37886970992469e827b1c2fcef89ee0] - Save paymentRecord with correlationId:with correlationId: ccf74a1f-0a69-459c-ae63-83c4fcb11d44 successfully with paymentId 2157
+2023-10-24 17:12:24.106 [pool-6-thread-5] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(240) -  [20231024171223275-b37886970992469e827b1c2fcef89ee0] - Process Payment successfully with response {"code":"00","message":"Success","data":{"id":2157,"token":"ccf74a1f-0a69-459c-ae63-83c4fcb11d44"}}
+2023-10-24 17:12:24.106 [pool-6-thread-5] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(317) -  [20231024171223275-b37886970992469e827b1c2fcef89ee0] - Publish Response to rabbitMq successfully !
+2023-10-24 17:12:24.106 [pool-6-thread-5] INFO  v.v.r.s.i.ExchangeMessageServiceImpl(206) -  [20231024171223275-b37886970992469e827b1c2fcef89ee0] - End processing processDeliveries in ExchangeMessageServiceImpl takes 553 milliseconds

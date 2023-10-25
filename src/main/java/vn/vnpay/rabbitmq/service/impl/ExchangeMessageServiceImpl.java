@@ -32,6 +32,11 @@ import java.util.concurrent.CompletableFuture;
 
 @Component
 public class ExchangeMessageServiceImpl implements IExchangeMessageService {
+    public static final ThreadLocal<String> logIdThreadLocal = new ThreadLocal<>();
+    @CustomValue("exchange.rpc.queueName")
+    private static String rpcQueueName;
+    @CustomValue("exchange.rpc.replyQueueName")
+    private static String replyQueueName;
     private final Logger logger = LoggerFactory.getLogger(ExchangeMessageServiceImpl.class);
     @CustomValue("charset.Name")
     private String charSet;
@@ -45,19 +50,13 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
     private String deadLetterQueueName;
     @CustomValue("consumer.prefetchCount")
     private int prefetchCount;
-    @CustomValue("exchange.rpc.queueName")
-    private static String rpcQueueName;
-    @CustomValue("exchange.rpc.replyQueueName")
-    private static String replyQueueName;
     @CustomValue("server.time.sleep")
     private int sleepingTime;
     private volatile boolean hasFailedMessage = false;
     @Autowire
     private IPaymentRecordService iPaymentRecordService;
     @Autowire
-    private  ChannelPool channelPool;
-
-    public static final ThreadLocal<String> logIdThreadLocal = new ThreadLocal<>();
+    private ChannelPool channelPool;
 
     private synchronized void handleSendFailedMessage(Channel channel) {
 

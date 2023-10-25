@@ -16,24 +16,6 @@ public class ChannelPool implements Cloneable {
     private GenericObjectPool<Channel> internalPool;
 
 
-    public static void initChannelPool(int maxTotal, int minIdle, int maxIdle, boolean blockWhenExhausted, ChannelFactory factory) {
-
-        if (instance == null) {
-            synchronized (ChannelPool.class) {
-                if (instance == null) {
-                    instance = new ChannelPool(maxTotal, minIdle, maxIdle, blockWhenExhausted, factory);
-                }
-            }
-        }
-    }
-
-    public static ChannelPool getInstance() {
-        if (instance == null) {
-            throw new IllegalStateException("ChannelPool not initialized. Call init() before getInstance()");
-        }
-        return instance;
-    }
-
     public ChannelPool(int maxTotal, int minIdle, int maxIdle, boolean blockWhenExhausted, ChannelFactory factory) {
 
         if (internalPool != null) {
@@ -54,6 +36,24 @@ public class ChannelPool implements Cloneable {
         } catch (Exception e) {
             logger.error("Create InternalPool fail with root cause ", e);
         }
+    }
+
+    public static void initChannelPool(int maxTotal, int minIdle, int maxIdle, boolean blockWhenExhausted, ChannelFactory factory) {
+
+        if (instance == null) {
+            synchronized (ChannelPool.class) {
+                if (instance == null) {
+                    instance = new ChannelPool(maxTotal, minIdle, maxIdle, blockWhenExhausted, factory);
+                }
+            }
+        }
+    }
+
+    public static ChannelPool getInstance() {
+        if (instance == null) {
+            throw new IllegalStateException("ChannelPool not initialized. Call init() before getInstance()");
+        }
+        return instance;
     }
 
     private void closeInternalPool() {

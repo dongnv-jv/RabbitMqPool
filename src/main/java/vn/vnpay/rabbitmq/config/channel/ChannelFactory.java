@@ -18,6 +18,10 @@ public class ChannelFactory implements PooledObjectFactory<Channel> {
     private final Connection connection;
     private final Logger logger = LoggerFactory.getLogger(ChannelFactory.class);
 
+    public ChannelFactory(Connection connection) {
+        this.connection = connection;
+    }
+
     public static ChannelFactory getInstance(RabbitMqConnectionPool connectionPool) throws IOException, TimeoutException {
         Connection connectionRaw = connectionPool.getConnection();
         if (instance == null) {
@@ -29,10 +33,6 @@ public class ChannelFactory implements PooledObjectFactory<Channel> {
             }
         }
         return instance;
-    }
-
-    public ChannelFactory(Connection connection) {
-        this.connection = connection;
     }
 
     @Override

@@ -6,8 +6,8 @@ import redis.clients.jedis.JedisPoolConfig;
 
 public class RedisConfig {
 
-    private final JedisPool jedisPool;
     private volatile static RedisConfig instance;
+    private final JedisPool jedisPool;
 
     public RedisConfig(String host, int port, String username, String password, int maxTotal, int minIdle, int maxIdle) {
         JedisPoolConfig poolConfig = new JedisPoolConfig();
@@ -17,10 +17,6 @@ public class RedisConfig {
         jedisPool = new JedisPool(poolConfig, host,
                 port);
         jedisPool.addObjects(minIdle);
-    }
-
-    public JedisPool getJedisPool() {
-        return jedisPool;
     }
 
     public static void initRedisConfig(String host, int port, String username, String password, int maxTotal, int minIdle, int maxIdle) {
@@ -33,15 +29,19 @@ public class RedisConfig {
         }
     }
 
-    public void returnConnection(Jedis jedis) {
-        jedis.close();
-    }
-
     public static RedisConfig getInstance() {
         if (instance == null) {
             throw new IllegalStateException("JedisPool not initialized. Call init() before getInstance()");
         }
         return instance;
+    }
+
+    public JedisPool getJedisPool() {
+        return jedisPool;
+    }
+
+    public void returnConnection(Jedis jedis) {
+        jedis.close();
     }
 
 }

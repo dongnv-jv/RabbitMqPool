@@ -32,6 +32,7 @@ public class HeaderExchange implements BaseExchange {
     private String deadLetterRoutingKey;
     @Autowire
     private ChannelPool channelPool;
+
     public void createExchangeAndQueue() {
         Long start = System.currentTimeMillis();
         logger.info("Start createExchangeAndQueue in HeaderExchange");

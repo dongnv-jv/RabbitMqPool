@@ -12,14 +12,23 @@ import java.util.concurrent.TimeoutException;
 
 public class RabbitMqConnectionPool implements Cloneable {
 
+    private volatile static RabbitMqConnectionPool instance;
+    private final Logger logger = LoggerFactory.getLogger(RabbitMqConnectionPool.class);
     int maxTotal;
     int minIdle;
     int maxIdle;
     boolean blockWhenExhausted;
     RabbitMqConnectionFactory rabbitMqConnectionFactory;
-    private volatile static RabbitMqConnectionPool instance;
-    private final Logger logger = LoggerFactory.getLogger(RabbitMqConnectionPool.class);
     private GenericObjectPool<Connection> internalPool;
+
+    public RabbitMqConnectionPool(int maxTotal, int minIdle, int maxIdle, boolean blockWhenExhausted, RabbitMqConnectionFactory rabbitMqConnectionFactory) {
+        this.maxTotal = maxTotal;
+        this.minIdle = minIdle;
+        this.maxIdle = maxIdle;
+        this.blockWhenExhausted = blockWhenExhausted;
+        this.rabbitMqConnectionFactory = rabbitMqConnectionFactory;
+        this.configPoolObject();
+    }
 
     public static void initConnectionPool(
             int maxTotal, int minIdle, int maxIdle, boolean blockWhenExhausted,
@@ -60,15 +69,6 @@ public class RabbitMqConnectionPool implements Cloneable {
             logger.error("Create InternalPool fail with root cause ", e);
         }
         logger.info("Create InternalPool with {} Connection in Pool", internalPool.getNumIdle());
-    }
-
-    public RabbitMqConnectionPool(int maxTotal, int minIdle, int maxIdle, boolean blockWhenExhausted, RabbitMqConnectionFactory rabbitMqConnectionFactory) {
-        this.maxTotal = maxTotal;
-        this.minIdle = minIdle;
-        this.maxIdle = maxIdle;
-        this.blockWhenExhausted = blockWhenExhausted;
-        this.rabbitMqConnectionFactory = rabbitMqConnectionFactory;
-        this.configPoolObject();
     }
 
     private void closeInternalPool() {

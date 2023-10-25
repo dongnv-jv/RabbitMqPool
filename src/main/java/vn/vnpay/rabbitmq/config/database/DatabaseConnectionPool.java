@@ -12,29 +12,12 @@ import vn.vnpay.rabbitmq.bean.PaymentRecord;
 
 import java.util.HashMap;
 import java.util.Map;
-public class DatabaseConnectionPool {
-    private Logger logger = LoggerFactory.getLogger(DatabaseConnectionPool.class);
 
+public class DatabaseConnectionPool {
+    private volatile static DatabaseConnectionPool databaseConnectionPool;
+    private final Logger logger = LoggerFactory.getLogger(DatabaseConnectionPool.class);
     private StandardServiceRegistry registry;
     private SessionFactory sessionFactory;
-    private volatile static DatabaseConnectionPool databaseConnectionPool;
-
-    public static DatabaseConnectionPool getInstance() {
-        if (databaseConnectionPool == null) {
-            throw new IllegalStateException("DatabaseConnectionPool not initialized. Call init() before getInstance()");
-        }
-        return databaseConnectionPool;
-    }
-
-    public static void initDatabaseConnectionPool(String driver, String url, String username, String password, String ddlAuto, boolean showSql) {
-        if (databaseConnectionPool == null) {
-            synchronized (DatabaseConnectionPool.class) {
-                if (databaseConnectionPool == null) {
-                    databaseConnectionPool = new DatabaseConnectionPool(driver, url, username, password, ddlAuto, showSql);
-                }
-            }
-        }
-    }
 
     public DatabaseConnectionPool(String driver, String url, String username, String password, String ddlAuto, boolean showSql) {
         if (sessionFactory == null) {
@@ -68,6 +51,23 @@ public class DatabaseConnectionPool {
                 }
             }
 
+        }
+    }
+
+    public static DatabaseConnectionPool getInstance() {
+        if (databaseConnectionPool == null) {
+            throw new IllegalStateException("DatabaseConnectionPool not initialized. Call init() before getInstance()");
+        }
+        return databaseConnectionPool;
+    }
+
+    public static void initDatabaseConnectionPool(String driver, String url, String username, String password, String ddlAuto, boolean showSql) {
+        if (databaseConnectionPool == null) {
+            synchronized (DatabaseConnectionPool.class) {
+                if (databaseConnectionPool == null) {
+                    databaseConnectionPool = new DatabaseConnectionPool(driver, url, username, password, ddlAuto, showSql);
+                }
+            }
         }
     }
 

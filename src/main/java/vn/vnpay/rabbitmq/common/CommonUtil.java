@@ -20,6 +20,7 @@ public class CommonUtil {
         long diffInSeconds = instantNow.getEpochSecond() - instantExpire.getEpochSecond();
         return diffInSeconds <= expire;
     }
+
     public static byte[] objectToBytes(Object object) throws IOException {
         return objectMapper.writeValueAsBytes(object);
     }

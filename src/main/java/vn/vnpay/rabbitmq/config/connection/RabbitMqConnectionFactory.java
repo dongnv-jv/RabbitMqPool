@@ -14,12 +14,12 @@ import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
 public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection> {
+    private volatile static RabbitMqConnectionFactory instance;
     private final String host;
     private final int port;
     private final String username;
     private final String password;
     private final String virtualHost;
-    private volatile static RabbitMqConnectionFactory instance;
     private final Logger logger = LoggerFactory.getLogger(RabbitMqConnectionFactory.class);
 
     public RabbitMqConnectionFactory(String host, int port, String username, String password, String virtualHost) {
@@ -28,16 +28,6 @@ public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection
         this.username = username;
         this.password = password;
         this.virtualHost = virtualHost;
-    }
-
-    public ConnectionFactory connectionFactory() {
-        ConnectionFactory factory = new ConnectionFactory();
-        factory.setUsername(username);
-        factory.setPassword(password);
-        factory.setVirtualHost(virtualHost);
-        factory.setHost(host);
-        factory.setPort(port);
-        return factory;
     }
 
     public static RabbitMqConnectionFactory getInstance(String host, int port, String username, String password, String virtualHost) {
@@ -50,6 +40,16 @@ public class RabbitMqConnectionFactory implements PooledObjectFactory<Connection
             }
         }
         return instance;
+    }
+
+    public ConnectionFactory connectionFactory() {
+        ConnectionFactory factory = new ConnectionFactory();
+        factory.setUsername(username);
+        factory.setPassword(password);
+        factory.setVirtualHost(virtualHost);
+        factory.setHost(host);
+        factory.setPort(port);
+        return factory;
     }
 
     @Override

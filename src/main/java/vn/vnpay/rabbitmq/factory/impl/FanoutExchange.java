@@ -15,6 +15,7 @@ import vn.vnpay.rabbitmq.factory.BaseExchange;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+
 @Component
 public class FanoutExchange implements BaseExchange {
 

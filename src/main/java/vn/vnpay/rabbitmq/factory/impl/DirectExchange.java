@@ -13,6 +13,7 @@ import vn.vnpay.rabbitmq.factory.BaseExchange;
 
 import java.util.HashMap;
 import java.util.Map;
+
 @Component
 public class DirectExchange implements BaseExchange {
 

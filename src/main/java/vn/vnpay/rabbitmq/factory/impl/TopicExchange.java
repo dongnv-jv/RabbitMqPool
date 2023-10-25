@@ -13,6 +13,7 @@ import vn.vnpay.rabbitmq.factory.BaseExchange;
 
 import java.util.HashMap;
 import java.util.Map;
+
 @Component
 public class TopicExchange implements BaseExchange {
 
@@ -30,6 +31,7 @@ public class TopicExchange implements BaseExchange {
     private String deadLetterRoutingKey;
     @Autowire
     private ChannelPool channelPool;
+
     @Override
     public void createExchangeAndQueue() {
         Long start = System.currentTimeMillis();
