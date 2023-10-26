@@ -8,7 +8,7 @@ import vn.vnpay.rabbitmq.annotation.Autowire;
 import vn.vnpay.rabbitmq.annotation.Component;
 import vn.vnpay.rabbitmq.annotation.CustomValue;
 import vn.vnpay.rabbitmq.common.CommonConstant;
-import vn.vnpay.rabbitmq.config.channel.ChannelPool;
+import vn.vnpay.rabbitmq.config.rabbitmq.channel.ChannelPool;
 import vn.vnpay.rabbitmq.factory.BaseExchange;
 
 import java.util.HashMap;

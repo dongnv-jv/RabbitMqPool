@@ -1,4 +1,4 @@
-package vn.vnpay.rabbitmq.config.connection;
+package vn.vnpay.rabbitmq.config.rabbitmq.connection;
 
 import com.rabbitmq.client.Connection;
 import org.apache.commons.pool2.impl.GenericObjectPool;

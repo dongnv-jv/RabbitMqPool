@@ -1,4 +1,4 @@
-package vn.vnpay.rabbitmq.config.connection;
+package vn.vnpay.rabbitmq.config.rabbitmq.connection;
 
 import com.rabbitmq.client.BlockedListener;
 import com.rabbitmq.client.Connection;

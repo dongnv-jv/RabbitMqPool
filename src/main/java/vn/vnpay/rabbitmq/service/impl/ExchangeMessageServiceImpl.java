@@ -16,7 +16,7 @@ import vn.vnpay.rabbitmq.annotation.CustomValue;
 import vn.vnpay.rabbitmq.bean.PaymentRecord;
 import vn.vnpay.rabbitmq.common.CommonUtil;
 import vn.vnpay.rabbitmq.common.ResponseCode;
-import vn.vnpay.rabbitmq.config.channel.ChannelPool;
+import vn.vnpay.rabbitmq.config.rabbitmq.channel.ChannelPool;
 import vn.vnpay.rabbitmq.factory.PaymentRequest;
 import vn.vnpay.rabbitmq.factory.Response;
 import vn.vnpay.rabbitmq.factory.ResponsePayment;
@@ -162,14 +162,14 @@ public class ExchangeMessageServiceImpl implements IExchangeMessageService {
             channel = channelPool.getChannel();
             this.declareQueue(channel);
             this.processDeliveries(channel);
-            long end = System.currentTimeMillis();
-            logger.info("Process processRPCServer in ExchangeMessageServiceImpl take {} millisecond", (end - start));
         } catch (Exception e) {
             logger.error("Process processRPCServer in ExchangeMessageServiceImpl from queue {} failed with root cause ", rpcQueueName, e);
         } finally {
             if (channel != null) {
                 channelPool.returnChannel(channel);
             }
+            long end = System.currentTimeMillis();
+            logger.info("Process processRPCServer in ExchangeMessageServiceImpl take {} millisecond", (end - start));
         }
     }
 

@@ -4,10 +4,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import vn.vnpay.rabbitmq.annotation.Component;
 import vn.vnpay.rabbitmq.annotation.CustomValue;
-import vn.vnpay.rabbitmq.config.channel.ChannelFactory;
-import vn.vnpay.rabbitmq.config.channel.ChannelPool;
-import vn.vnpay.rabbitmq.config.connection.RabbitMqConnectionFactory;
-import vn.vnpay.rabbitmq.config.connection.RabbitMqConnectionPool;
+import vn.vnpay.rabbitmq.config.rabbitmq.channel.ChannelFactory;
+import vn.vnpay.rabbitmq.config.rabbitmq.channel.ChannelPool;
+import vn.vnpay.rabbitmq.config.rabbitmq.connection.RabbitMqConnectionFactory;
+import vn.vnpay.rabbitmq.config.rabbitmq.connection.RabbitMqConnectionPool;
 import vn.vnpay.rabbitmq.config.database.DatabaseConnectionPool;
 import vn.vnpay.rabbitmq.config.redis.RedisConfig;
 

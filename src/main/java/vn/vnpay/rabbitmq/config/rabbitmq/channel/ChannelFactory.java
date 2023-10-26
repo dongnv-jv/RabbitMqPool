@@ -1,4 +1,4 @@
-package vn.vnpay.rabbitmq.config.channel;
+package vn.vnpay.rabbitmq.config.rabbitmq.channel;
 
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
@@ -7,7 +7,7 @@ import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import vn.vnpay.rabbitmq.config.connection.RabbitMqConnectionPool;
+import vn.vnpay.rabbitmq.config.rabbitmq.connection.RabbitMqConnectionPool;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;

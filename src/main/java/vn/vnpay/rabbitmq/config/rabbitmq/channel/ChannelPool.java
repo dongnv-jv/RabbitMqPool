@@ -1,4 +1,4 @@
-package vn.vnpay.rabbitmq.config.channel;
+package vn.vnpay.rabbitmq.config.rabbitmq.channel;
 
 import com.rabbitmq.client.Channel;
 import org.apache.commons.pool2.impl.GenericObjectPool;
